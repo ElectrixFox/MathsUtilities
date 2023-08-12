@@ -1,56 +1,31 @@
-#include "Utility.h"
-#include "Checkprime.h"
+#include "Factor.h"
 
 using std::cout;
 using std::cin;
 using std::get;
 
-std::vector<int> primes = {2, 3, 5, 7, 11, 13, 17, 19, 23};
+
+extern std::vector<int> primes;
+
+std::string Factors::compress()
+{
+std::string res = "";
+int len = x.size();
+
+for (int i = 0; i < len; i++)
+    {
+    res += (std::to_string(x[i]) + ((i+1 != len) ? " * " : ""));
+    }
+
+return res;
+};
+
 
 #define vout(x, s) cout << "\n" << #x << ": "; for(int K0 = 0; K0 < x.size(); K0++) { std::cout << x[K0] << ((K0+1 == x.size()) ? "" : s); }
 
-struct Factors
-    {
-    std::vector<int> x;
-
-    void flush() { using namespace std; x.erase(remove(x.begin(), x.end(), 1), x.end()); };
-
-    };
-
-struct Number
-    {
-    int base;
-    int exponent;
-
-    std::string getStr() {  return {std::to_string(base) + "^" + std::to_string(exponent)}; }
-    };
-
-int readPrimes();
-
-std::tuple<int, int> fermat(int n);
-
-int baseFermat(int n, std::vector<int>& f);
-Factors Factor(int n);
-
-std::vector<Number> exponentiate(std::vector<int> nums);
-std::vector<int> remDuplicates(std::vector<int> vec);
-
-
-int main(int argc, char const *argv[])
+int outFactors(Factors f)
 {
-int n = 0;
-cin >> n;
-
-loadPrimes("primes.txt");
-
-Factors f = Factor(n);
-
-f.flush();
-f.x = sort(f.x);
-
-
 std::vector<Number> ns = exponentiate(f.x);
-
 
 cout << '\n';
 for (int i = 0; i < ns.size(); i++)
@@ -59,12 +34,10 @@ for (int i = 0; i < ns.size(); i++)
     std::cout << (((i + 1) == ns.size()) ? "" : " * ");
     }
 
-cin.get();
-
 return 0;
 }
 
-std::tuple<int, int> fermat(int n)
+facPair fermat(int n)
 {
 int a = 0;
 int b = 0;
@@ -82,7 +55,7 @@ while(floor(sqrt(a*a-n)) < sqrt(a*a-n))
 
 b = sqrt(a*a-n);
 
-return std::tuple<int, int>((a-b), (a+b));
+return {(a-b), (a+b)};
 }
 
 int baseFermat(int n, std::vector<int>& f)
@@ -100,9 +73,9 @@ auto ptest = [](int n)
     {
     
     if(n == 1)
-        return 1;
+        return -1;
 
-    for(int i = 0; i < sizeof(primes) / sizeof(primes[0]); i++)
+    for(int i = 0; i < primes.size()-1; i++)
         {
         if(primes[i] == n)
             return 1;
@@ -113,30 +86,27 @@ auto ptest = [](int n)
 
 
 // the factors from the fermat factorisation
-std::tuple<int, int> facs = fermat(n);
+facPair facs = fermat(n);
 
 // get the vals from the tuple
-int v1 = get<0>(facs);
-int v2 = get<1>(facs);
+int v1 = facs.a;
+int v2 = facs.b;
 
 
 // testing if they're prime
 int res1 = ptest(v1);
 int res2 = ptest(v2);
 
-
 // if it is a prime factor add it to the list if not factorise that (for both factors)
 if(res1 == 1)
     f.push_back(v1);
-else
+else if (res1 == 0)
     baseFermat(v1, f);
 
 if(res2 == 1)
     f.push_back(v2);
-else
+else if (res2 == 0)
     baseFermat(v2, f);
-
-
 
 return 1;
 }
@@ -159,6 +129,8 @@ auto trialdiv = [](int n, Factors f) {
 
 
 baseFermat(n, f.x);
+
+f.x = sort(f.x);
 
 return f;
 }

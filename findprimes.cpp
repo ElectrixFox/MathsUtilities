@@ -1,98 +1,56 @@
-#include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-
-#include <fstream>
-#include <string>
-#include <vector>
+#include "FindPrimes.h"
 
 using namespace std;
 
-const int baseP[] = {2, 3, 5, 7};
+extern std::vector<int> primes;
 
-vector<int> getPrimes(string filePath = "");
-
-vector<int> findPrimes(vector<int> primes, int upto);
-int appendvec(vector<int>& a, vector<int> b);
-
-int findClosestPrime(vector<int> primes, int tofind, int lower = 0);
-
-int writePrimes(string filePath, vector<int> primes);
-
-
-int main(int argc, char const *argv[])
+int findClosestPrime(vector<int> pnums, int tofind, int higher)
 {
-int num;
-int c = 0, w = 0;
-
-cout << "Enter Number of Primes up to: ";
-cin >> num;
-
-cout << "File: ";
-cin >> c;
-
-vector<int> primes;
-
-if(c == 0)
-    primes = getPrimes();
-else
-    primes = getPrimes("primes.txt");
-
-vector<int> p2 = findPrimes(primes, num);
-
-cout << "\nWrite: ";
-cin >> w;
-
-if(w == 1)
-    writePrimes("primes.txt", p2);
-
-return 0;
-}
-
-int findClosestPrime(vector<int> primes, int tofind, int lower)
-{
-int current = primes[0];
+int current = pnums[0];
 
 // can be improved by using a pseudo-binary search
-for (int i = 0; i < primes.size()-1; i++)
+for (int i = 0; i < pnums.size()-1; i++)
     {
-    int res1 = tofind - primes[i];
-    int res2 = tofind - primes[i+1];
+    int res1 = tofind - pnums[i];
+    int res2 = tofind - pnums[i+1];
 
     // if it has to be lower then it won't be the absolute
-    if(lower != 1)
+    if(higher == 0)
         {
         res1 = abs(res1);
         res2 = abs(res2);
         }
 
+    if(higher == -1 && res2 < 0)
+        return pnums[i];
+    if(higher == 1 && res2 < 0)
+        return pnums[i+1];
+
     // if x - p_n < x - p_n+1 then p_n will be further away from x 
-    if(res1 <= res2 || res2 < 0)
+    if(res1 <= res2)
         {
-        return primes[i];
+        return pnums[i];
         }
     }
 
 
 cout << "\nNot in range";
 
-return primes[primes.size()];
+return pnums[pnums.size()];
 }
 
-vector<int> findPrimes(vector<int> primes, int upto)
+vector<int> findPrimes(vector<int> pnums, int upto)
 {
 int size = upto;
-int psize = primes.size()-1;
+int psize = pnums.size()-1;
 vector<int> numbers;
 
 cout << "\nupto: " << upto;
 
-if(ceil(sqrt(upto)) > primes[psize])
+if(ceil(sqrt(upto)) > pnums[psize])
     {
-    appendvec(primes, findPrimes(primes, ceil(sqrt(upto))));
-    psize = primes.size() - 1;
+    appendvec(pnums, findPrimes(pnums, ceil(sqrt(upto))));
+    psize = pnums.size() - 1;
     }
 
 
@@ -104,7 +62,7 @@ for (int i = 1; i < size; i++)
     for (int j = 0; j < psize; j++)
         {
         // checking for any multiples
-        if(i % primes[j] == 0 && i != primes[j])
+        if(i % pnums[j] == 0 && i != pnums[j])
             {
             break;
             }
@@ -131,7 +89,7 @@ return numbers;
 
 vector<int> getPrimes(string filePath)
 {
-vector<int> primes;
+vector<int> pnums;
 
 if(filePath == "")
     {
@@ -145,25 +103,27 @@ string line;
 while(getline(in, line))
     {
     if(line != "\n")
-        primes.push_back(atoi(line.c_str()));
+        pnums.push_back(atoi(line.c_str()));
     }
 
 in.close();
 
-return primes;
+return pnums;
 }
 
-int writePrimes(string filePath, vector<int> primes)
+int writePrimes(string filePath, vector<int> pnums)
 {
 ofstream out(filePath, ios::out);
 
-for (int i = 0; i < primes.size(); i++)
+for (int i = 0; i < pnums.size(); i++)
     {
-    string expr = to_string(primes[i]) + "\n";
+    string expr = to_string(pnums[i]) + "\n";
     out.write(expr.c_str(), expr.size());
     }
 
 out.close();
+
+return 1;
 }
 
 int appendvec(vector<int>& a, vector<int> b)
@@ -173,4 +133,5 @@ for (int i = 0; i < b.size(); i++)
     a.push_back(b[i]);
     }
 
+return 1;
 }
