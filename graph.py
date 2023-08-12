@@ -4,54 +4,89 @@ from tkinter import font
 import math
 import re
 
-curindex = 1
+curindex = 0
 numbers = []
 factors = []
+exponents = []
 
 def loadData(filePath):
-    global numbers, factors
+    global numbers, factors, exponents
 
+    # regex pattern
+    pattern = r"(\d+):\s*((?:\d+\^\d+\s*\*\s*)*\d+\^\d+)$"
+
+    # opens the file to read
     file = open(filePath, 'r')
 
-    pattern = r"(\d+):\s*((?:\d+\s*\*\s*)*\d+)$"
+    # reads back all of the lines
     lines = file.readlines()
 
+    # closes file
+    file.close()
+
     for s in lines:
+        # arrays
+        facs = []
+        exps = []
+
+
+        #  gets all of the matches of the pattern
         match = re.match(pattern, s)
         if match:
+            # group 1 matches are the numbers
             number = int(match.group(1))
-            factor_strings = match.group(2).split('*')
-            facs = [int(factor.strip()) for factor in factor_strings]
 
+            # splits at the multiplication sign
+            factor_strings = match.group(2).split('*')
+
+            # splits the factor part into the exponents and the factors
+            for factor_string in factor_strings:
+                factor, exponent = factor_string.strip().split('^')
+                facs.append(int(factor))
+                exps.append(int(exponent))
+            
+            # adds all of them to the respective global variables
             numbers.append(number)
             factors.append(facs)
+            exponents.append(exps)
+
 
 loadData("Composite.txt")
 
 root = tk.Tk()
 
-canvas = tk.Canvas(root, width=400, height=400, borderwidth=0, bg="black")
+# creates the canvas
+canvas = tk.Canvas(root, width=800, height=800, borderwidth=0, bg="black")
 canvas.grid(row = 0, column = 0, sticky="nsew")
 
 SelectedNode = 0
+
+edges = []
+
+nodes = []
+
+pnodes = []
+
+print(numbers[0])
+print(factors[0])
 
 class controlBar():
     def __init__(self, root, canvas):
         self.root = root
         self.root.title("Sidebar with Canvas Example")
 
-        # Create main frame with grid layout
+        # create main frame with grid layout
         self.main_frame = ttk.Frame(root)
         self.main_frame.grid(row=0, column=1, sticky="nsew")
 
-        # Create Canvas and add it to the main frame
+        # create Canvas and add it to the main frame
         self.canvas = canvas
         
-        # Create sidebar frame and add it to the main frame
+        # create sidebar frame and add it to the main frame
         self.sidebar_frame = ttk.Frame(self.main_frame)
         self.sidebar_frame.grid(row=0, column=1, sticky="ns")
 
-        # Add widgets to the sidebar
+        # add widgets to the sidebar
         button1 = ttk.Button(self.sidebar_frame, text="Next Number")
         button1.pack(pady=10)
 
@@ -62,11 +97,21 @@ class controlBar():
         text1.pack(pady = 10)
         self.textbox = text1
 
-        #button2 = ttk.Button(self.sidebar_frame, text="Option 2")
-        #button2.pack(pady=10)
+        # information on the factors
+        self.factable = ttk.Treeview(self.sidebar_frame, columns=("Number", "Factors", "Exponents"))
+        self.factable.heading("#0", text="", anchor="w")
+        self.factable.heading("Number", text="Number")
+        self.factable.heading("Factors", text="Factors")
+        self.factable.heading("Exponents", text="Exponents")
 
-        #button3 = ttk.Button(self.sidebar_frame, text="Option 3")
-        #button3.pack(pady=10)
+        self.factable.column("#0", width=1, stretch=False)
+        self.factable.column("Number", width=50)
+        self.factable.column("Factors", width=100)
+        self.factable.column("Exponents", width=100)
+
+        self.factable.pack(pady=10)
+
+cb = controlBar(root, canvas)
 
 # if a node has already been selected it creates an edge
 def selNodes(n):
@@ -85,11 +130,6 @@ def selNodes(n):
     else:
         canvas.itemconfig(n.shape, fill="grey")
         SelectedNode = n
-
-edges = []
-
-
-cb = controlBar(root, canvas)
 
 class Edge:
     def __init__(self, source, target):
@@ -237,27 +277,40 @@ class Node:
         self.centre = (center_x, center_y)
         return center_x, center_y
 
-nodes = []
-
 def load_new_set():
-    global numbers, factors, curindex
+    global numbers, factors, exponents, curindex
 
-    n = Node(canvas, 20, 20, 20, str(numbers[curindex]), "blue")
+    # creates the new node
+    n = Node(canvas, 20, 20, 20, str(numbers[curindex]), "green")
     nodes.append(n)
 
+    # gets the factors of the number
     facs = factors[curindex]
+    cb.factable.insert("", "end", values=(numbers[curindex], factors[curindex], exponents[curindex]))
+
+    print(factors[curindex])
+    curindex += 1
 
     for i in range(1, len(facs)+1):
-        if(facs[i] == facs[i-1]):
-            i += 1
+        # the factor as a string
+        name = str(facs[i-1])
+
+        # goes to the next factor if the name is already there
+        if(name in pnodes):
             continue
-
+        
+        # calculation to get the spacing of 40 units between each node
         xy = 20 + 40*(i*2)
-        fn = Node(canvas, xy, 20, 20, str(facs[i-1]), "red")
-        nodes.append(fn)
 
-            
-    curindex += 1
+        # creates the new factor node
+        fn = Node(canvas, xy, 20, 20, name, "red")
+
+        # appending the name to the prime list
+        pnodes.append(name)
+
+        # appending the node to the nodes list
+        nodes.append(fn)
+      
 
 cb.nextbutton.config(command=load_new_set)
 
