@@ -2,7 +2,7 @@
 
 extern std::vector<int> primes;
 
-int writeCompositesToFile(std::vector<Factors> compfacs)
+int writeCompositesToFile(std::vector<Factors> compfacs, int adding)
 {
 int num;
 std::string facs;
@@ -19,7 +19,12 @@ for (int i = 0; i < fsize; i++)
     std::get<1>(element[i]) = facs;
     }
 
-std::ofstream out = std::ofstream("Composite.txt", std::ios::binary);
+std::ios_base::openmode mode = std::ios::binary;
+
+if(adding == 1)
+    mode = std::ios::app;
+
+std::ofstream out = std::ofstream("Composite.txt", mode);
 
 std::string line;
 
@@ -44,10 +49,8 @@ if(isPrime(start) == 1) { std::cout << "\nStarting on a prime isn't valid"; retu
 // gets the new end
 end = findClosestPrime(primes, start, 1);
 
-for (int i = start; i < end; i++)
+for (int i = start; i < end+1; i++)
     {
-    std::cout << i << ", ";
-
     comps.push_back(Factor(i));
     }
 

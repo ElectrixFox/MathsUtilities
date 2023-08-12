@@ -6,17 +6,14 @@ std::vector<int> primes;
 
 int main(int argc, char const *argv[])
 {
-
 primes = loadPrimes("primes.txt");
 
-//Factors fs = Factor(55);
+for (int i = 5; i < 25; i++)
+    {
+    std::vector<Factors> facs = genComposites(primes[i]+1, primes[i+1]-1);
+    writeCompositesToFile(facs, 1);
+    }
 
-//outFactors(fs);
-
-std::vector<Factors> facs = genComposites(32, 36);
-writeCompositesToFile(facs);
-
-std::cout << "\nEnd";
 
 return 0;
 }
