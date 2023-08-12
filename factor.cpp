@@ -1,33 +1,52 @@
 #include "Factor.h"
 
-using std::cout;
-using std::cin;
-using std::get;
-
-
 extern std::vector<int> primes;
 
-std::string Factors::compress()
+std::string Factors::compress(int exponential)
 {
 std::string res = "";
 int len = x.size();
 
-for (int i = 0; i < len; i++)
+if(exponential == 1)
     {
-    res += (std::to_string(x[i]) + ((i+1 != len) ? " * " : ""));
+    // gets all of the numbers in exponential form
+    std::vector<Number> nums = exponentiate(x);
+    len = nums.size();
+
+    for (int i = 0; i < len; i++)
+        {
+        std::string numstr = nums[i].getStr();
+
+        // sets the suffix as blank if i+1 is the end of the array, if not then sets it to * 
+        std::string end = ((i+1 == len) ? "" : " * ");
+
+        // concat the strings
+        res += (numstr + end);
+        }
+    }
+else
+    {
+    for (int i = 0; i < len; i++)
+        {
+        // turns the ith element into a string
+        std::string body = std::to_string(x[i]);
+        
+        // same as before
+        std::string end = ((i+1 == len) ? "" : " * ");
+
+        // concating
+        res += (body + end);
+        }
     }
 
 return res;
 };
 
-
-#define vout(x, s) cout << "\n" << #x << ": "; for(int K0 = 0; K0 < x.size(); K0++) { std::cout << x[K0] << ((K0+1 == x.size()) ? "" : s); }
-
 int outFactors(Factors f)
 {
 std::vector<Number> ns = exponentiate(f.x);
 
-cout << '\n';
+std::cout << '\n';
 for (int i = 0; i < ns.size(); i++)
     {
     std::cout << ns[i].getStr();
@@ -59,7 +78,7 @@ return {(a-b), (a+b)};
 }
 
 int baseFermat(int n, std::vector<int>& f)
-{  
+{ 
 
 // getting any factors of two immediately out of there
 while((n % 2) == 0)
@@ -138,8 +157,8 @@ return f;
 int readPrimes()
 {
 primes = loadPrimes("primes.txt");
-cin.ignore();
-cin.clear();
+std::cin.ignore();
+std::cin.clear();
 
 return 0;
 }
@@ -151,19 +170,27 @@ int expc = 1;
 int cur = 0;
 int prev = 0;
 
+// sorts the numbers
 nums = sort(nums);
 
 // final nums
 std::vector<Number> fins;
 
+// removes the duplicates
 std::vector<int> tmp = nums;
 
 tmp = remDuplicates(tmp);
 
-for (size_t i = 0; i < tmp.size(); i++)
+for (int i = 0; i < tmp.size(); i++)
     {
+    // counts all ocurrances of tmp[i] in nums because tmp is unique it can be done as so
     expc = std::count(nums.begin(), nums.end(), tmp[i]);
-    fins.push_back({tmp[i], expc});
+
+    // a temp number to store in the vector
+    Number tnum = {tmp[i], expc};
+
+    // adds number tmp[i] with the exponent of expc
+    fins.push_back(tnum);
     }
 
 

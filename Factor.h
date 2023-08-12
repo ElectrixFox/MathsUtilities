@@ -12,7 +12,7 @@ struct Factors
 
     void flush() { using namespace std; x.erase(remove(x.begin(), x.end(), 1), x.end()); };
     int compute() { int res = 1; for (int num : x) { res *= num; } return res; };
-    std::string compress();
+    std::string compress(int exponential = 0);
     };
 
 struct Number
@@ -20,7 +20,7 @@ struct Number
     int base;
     int exponent;
 
-    std::string getStr() {  return {std::to_string(base) + "^" + std::to_string(exponent)}; }
+    std::string getStr() { return (std::to_string(base) + "^" + std::to_string(exponent)); };
     };
 
 

@@ -11,7 +11,7 @@ primes = loadPrimes("primes.txt");
 for (int i = 5; i < 25; i++)
     {
     std::vector<Factors> facs = genComposites(primes[i]+1, primes[i+1]-1);
-    writeCompositesToFile(facs, 1);
+    writeCompositesToFile(facs, 1, 1);
     }
 
 

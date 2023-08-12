@@ -6,7 +6,7 @@
 #include "Checkprime.h"
 #include "FindPrimes.h"
 
-int writeCompositesToFile(std::vector<Factors> compfacs, int adding = 0);
+int writeCompositesToFile(std::vector<Factors> compfacs, int adding = 0, int exponential = 0);
 std::vector<Factors> genComposites(int start, int end);
 
 #endif

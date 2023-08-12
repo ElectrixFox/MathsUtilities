@@ -12,6 +12,7 @@
 #include <tuple>
 #include <string>
 #include <algorithm>
+#include <sstream>
 
 
 std::vector<int> loadPrimes(std::string filePath = "");
