@@ -9,6 +9,14 @@ numbers = []
 factors = []
 exponents = []
 
+def debugcircle(canvas, x, y, r):
+    x1 = x - r
+    y1 = y - r
+    x2 = x + r
+    y2 = y + r
+
+    return canvas.create_oval(x1, y1, x2, y2, fill="white")
+
 def lineEquation(c1, c2):
     # giving all of these values easy to use alias'
     x1 = c1.pos[0]
@@ -23,7 +31,7 @@ def lineEquation(c1, c2):
     m = (y2 - y1)/(x2 - x1)
 
     # if c2 is on the other side to c1 then add 180 to make it go full 2 pi radians (360 deg)
-    O = (math.pi)/2 if (x2 < x1) else 0 
+    O = (math.pi) if (x2 < x1) else 0 
 
     # getting the angle between the centre of the circle and where the line passes through it's circumference
     p = math.atan(m)+O
@@ -223,14 +231,6 @@ class Edge:
             print("Creating text")
             self.canvas.itemconfig(self.text, text = ltext)
             self.canvas.coords(self.text, midx, midy)
-
-def circle(canvas, x, y, r):
-    x1 = x - r
-    y1 = y - r
-    x2 = x + r
-    y2 = y + r
-
-    return canvas.create_oval(x1, y1, x2, y2, fill="white")
 
 class Node:
     def __init__(self, canvas, x, y, r, name="jeff", colour="red"):
