@@ -58,7 +58,11 @@
         "numeric": "cpp",
         "optional": "cpp",
         "random": "cpp",
-        "numbers": "cpp"
+        "numbers": "cpp",
+        "qmainwindow": "cpp",
+        "qlabel": "cpp",
+        "qpainter": "cpp",
+        "qwidget": "cpp"
     },
     "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
     "C_Cpp.errorSquiggles": "enabled"
