@@ -3,7 +3,7 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
             ],
             "defines": [
                 "_DEBUG",
@@ -12,7 +12,7 @@
             ],
             "cStandard": "c17",
             "cppStandard": "gnu++17",
-            "compilerPath": "C:/msys64/ucrt64/bin/g++.exe"
+            "compilerPath": "C:/msys64/mingw64/bin/g++.exe"
         }
     ],
     "version": 4

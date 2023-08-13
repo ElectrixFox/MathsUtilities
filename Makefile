@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -I.
+CXXFLAGS = -I. `C:/msys64/usr/bin/pkg-config.exe --cflags --libs gtkmm-3.0`
 
 APPNAME = main
 

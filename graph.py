@@ -3,6 +3,10 @@ from tkinter import ttk
 from tkinter import font
 import math
 import re
+import ctypes
+
+ctypes.windll.shcore.SetProcessDpiAwareness(2)
+ctypes.windll.user32.SetProcessDPIAware()
 
 curindex = 0
 numbers = []
@@ -46,8 +50,6 @@ def lineEquation(c1, c2):
 
     # set out above as coordinates to make it easier to read
     return [pos1[0], pos1[1], pos2[0], pos2[1]]
-
-
 
 
 
@@ -96,6 +98,8 @@ def loadData(filePath):
 loadData("Composite.txt")
 
 root = tk.Tk()
+
+#root.tk.call('tk', 'scaling', 2.0)
 
 # creates the canvas
 canvas = tk.Canvas(root, width=800, height=800, borderwidth=0, bg="black")
