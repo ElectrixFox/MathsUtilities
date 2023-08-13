@@ -9,6 +9,40 @@ numbers = []
 factors = []
 exponents = []
 
+def lineEquation(c1, c2):
+    # giving all of these values easy to use alias'
+    x1 = c1.pos[0]
+    y1 = c1.pos[1]
+    r1 = c1.radius
+
+    x2 = c2.pos[0]
+    y2 = c2.pos[1]
+    r2 = c2.radius
+
+    # getting the gradient of the line between them
+    m = (y2 - y1)/(x2 - x1)
+
+    # if c2 is on the other side to c1 then add 180 to make it go full 2 pi radians (360 deg)
+    O = (math.pi)/2 if (x2 < x1) else 0 
+
+    # getting the angle between the centre of the circle and where the line passes through it's circumference
+    p = math.atan(m)+O
+
+    # cos of the angle between the line and the centre
+    # where r1 is the hypotenuse of the line we find the horizontal distance and then offset it by x1 to make it local to the circle
+    # same sort of thing with sin apart from it's used to find the vertical distance
+    pos1 = (x1 + r1*math.cos(p), y1 + r1*math.sin(p))
+
+    # negative here because it is intersecting a different circle at a different point
+    pos2 = (x2 - r2*math.cos(p), y2 - r2*math.sin(p))
+
+    # set out above as coordinates to make it easier to read
+    return [pos1[0], pos1[1], pos2[0], pos2[1]]
+
+
+
+
+
 def loadData(filePath):
     global numbers, factors, exponents
 
@@ -156,13 +190,13 @@ class Edge:
         self.text = self.canvas.create_text(0, 0, text = "", fill="white")
         canvas.tag_bind(self.text, '<Button-3>', self.rem)
 
-
         edges.append(self)
 
     def update(self):
         # the points of the line
-        points = [self.source.pos[0], self.source.pos[1], self.target.pos[0], self.target.pos[1]]
-        
+        #points = [self.source.pos[0], self.source.pos[1], self.target.pos[0], self.target.pos[1]]
+        points = lineEquation(self.source, self.target)
+
         # updating the start and end points of the line
         self.canvas.coords(self.line, points)
 
@@ -170,6 +204,7 @@ class Edge:
         midy = (self.source.pos[1] + self.target.pos[1])/2
         
         self.canvas.coords(self.text, midx, midy)
+
     
     def rem(self, event):
         self.canvas.delete(self.text)
@@ -311,6 +346,7 @@ def load_new_set():
         # appending the node to the nodes list
         nodes.append(fn)
       
+
 
 cb.nextbutton.config(command=load_new_set)
 
