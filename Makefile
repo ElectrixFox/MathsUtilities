@@ -1,16 +1,18 @@
 CXX = g++
-CXXFLAGS = -I. `C:/msys64/usr/bin/pkg-config.exe --cflags --libs gtkmm-3.0`
+CXXFLAGS = -I.
 
 APPNAME = main
+
+END = `pkg-config gtkmm-3.0 --cflags --libs`
 
 SRCFILES = $(wildcard *.cpp)
 OBJFILES = $(addprefix obj/, $(patsubst %.cpp, %.o, $(SRCFILES)))
 
 obj/%.o: %.cpp
-	$(CXX) $(CXXFLAGS) $^ -c -o $@
+	$(CXX) $(CXXFLAGS) $^ -c -o $@ $(END)
 
 all: $(OBJFILES)
-	$(CXX) $(CXXFLAGS) $^ -o $(APPNAME)
+	$(CXX) $(CXXFLAGS) $^ -o $(APPNAME) $(END)
 
 clean:
 	rm obj/*.o
