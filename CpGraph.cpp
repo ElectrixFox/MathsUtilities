@@ -3,79 +3,101 @@
 int n = 0;
 
 class Shape
-    {
-    public:
-        Shape() {};
+{
+public:
+    Shape(int inx, int iny);
 
-        void draw() {};
-    };
+    virtual void draw(QPainter* qp) {};
+    
+    void coords() { printf("\n(%d, %d)", x, y); };
 
-class Circle : public Shape, public QWidget
-    {
-    public:
-        Circle(int x = 0, int y = 0, int radius = 1, QWidget* parent = nullptr) : QWidget(parent), x(x), y(y), radius(radius) { id = n; n++; };
+protected:
+    int id;
+    int x, y;
+};
 
-        void paintEvent(QPaintEvent* event) override 
-            {
-            QPainter p(this);
-            p.setRenderHint(QPainter::Antialiasing);
+Shape::Shape(int inx, int iny) : x(inx), y(iny) {};
 
-            draw(&p);
-            };
+class Circle : public Shape
+{
+public:
+    Circle(int inx, int iny, int radius);
 
-        void draw(QPainter* qp)
-            {
-            // jargon to do different things
-            int a = x - radius;
-            int b = y - radius;
-            int c = 2*radius;
+    void draw(QPainter* qp) override;
 
-            qp->setBrush(Qt::blue);
+    int x, y, radius;
+protected:
+    int id;
+    int moving = 0;
+};
 
-            qp->drawEllipse(a, b, c, c);
-            };
+Circle::Circle(int inx, int iny, int radius) : Shape(inx, iny), radius(radius)
+{
+x = inx;
+y = iny;
+id = n;
+n += 1;
+}
 
-    private:
-        int x, y, radius;
-        int moving = 0;
+void Circle::draw(QPainter* qp)
+{
+// jargon to do different things
+int a = x - radius;
+int b = y - radius;
+int c = 2*radius;
 
-        int id;
+qp->setBrush(Qt::red);
 
-    };
+qp->drawEllipse(a, b, c, c);
+
+}
 
 class WindowManager : public QWidget
+{
+public: 
+    WindowManager(QWidget* parent = nullptr) : QWidget(parent) { setMouseTracking(true); };
+
+    std::vector<Shape*> shapes;
+
+protected:
+    void paintEvent(QPaintEvent* event) override 
+    {    
+    QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing);
+
+    Circle c(250, 250, 40);
+    c.draw(&p);
+
+    shapes[0]->draw(&p);
+
+    /* for (Shape s : shapes)
+        {
+        s.coords();
+        s.draw(&p);
+        } */
+    };
+
+    void mousePressEvent(QMouseEvent* event) override 
     {
-    public:
-        WindowManager(QWidget* parent = nullptr) : QWidget(parent) { setMouseTracking(true); };
+    std::cout << this->paintingActive();
+    
+    event->button();
+    int px = event->pos().rx();
+    int py = event->pos().ry();
 
-        std::vector<Shape> shapes;
+    std::cout << "\n(" << px << ", " << py << ")";
 
-    private:
-        int id;
 
-        void paintEvent(QPaintEvent* event) override 
+    /* for (int i = 0; i < shapes.size(); i++)
         {
-        QPainter p(this);
-        p.setRenderHint(QPainter::Antialiasing);
-
-        for (int i = 0; i < shapes.size(); i++)
+        if(shapes[i].bbox.contains(px, py))
             {
-            shapes[i].draw();
+            //std::cout << "\nClicking: " << shapes[i].id;
             }
-        };
+        } */
+    };
 
-        
-        void mousePressEvent(QMouseEvent* event) override 
-        {
-        event->button();
-        int px = event->pos().rx();
-        int py = event->pos().ry();
-
-        std::cout << "\n(" << px << ", " << py << ")";
-        std::cout << "\nClicking with " << id;
-        };
-
-        void mouseMoveEvent(QMouseEvent* event) override 
+/*         void mouseMoveEvent(QMouseEvent* event) override 
         {
 
         update();
@@ -85,36 +107,34 @@ class WindowManager : public QWidget
         {
 
         update();
-        };
-        
-    };
+        }; */
+
+};
+
+
 
 int CpMain()
 {
-int h;
+int h = 0;
 QApplication app(h, {});
 
-QWidget wind;
+/* QWidget wind;
 wind.setWindowTitle("Ellipse Drawing Example");
 wind.setGeometry(100, 100, 400, 400);
-wind.show();
+wind.show(); */
 
-WindowManager wman(&wind);
+WindowManager winman;
 
-Circle c1(150, 150, 25, &wind);
-c1.setGeometry(100, 100, 400, 400);
-c1.show();
+Circle c1(150, 150, 10);
+Circle c2(0, 0, 25);
+winman.shapes.push_back(&c1);
+winman.shapes.push_back(&c2);
 
-Circle c2(300, 300, 25, &wind);
-c2.setGeometry(100, 100, 400, 400);
-c2.show();
+winman.setGeometry(100, 100, 400, 400);
+winman.show();
 
-//wman.shapes.push_back(c1);
-//wman.shapes.push_back(c2);
+int result = app.exec();
 
-//wman.setGeometry(100, 100, 400, 400);
-//wman.show();
-
-return app.exec();
+return result;
 }
 
