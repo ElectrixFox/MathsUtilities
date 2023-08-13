@@ -1,4 +1,5 @@
 #include "Utility.h"
-#include <gtkmm-3.0/gtkmm.h>
+#include <QtWidgets/qapplication.h>
+#include <QtWidgets/qpushbutton.h>
 
 int CpMain();

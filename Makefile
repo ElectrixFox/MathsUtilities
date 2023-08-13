@@ -3,7 +3,7 @@ CXXFLAGS = -I.
 
 APPNAME = main
 
-END = `pkg-config gtkmm-3.0 --cflags --libs`
+END = `pkg-config Qt5Widgets --cflags --libs`
 
 SRCFILES = $(wildcard *.cpp)
 OBJFILES = $(addprefix obj/, $(patsubst %.cpp, %.o, $(SRCFILES)))

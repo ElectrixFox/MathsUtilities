@@ -2,11 +2,18 @@
 
 int CpMain()
 {
-auto app = Gtk::Application::create();
-        
-Gtk::Window window;
-window.set_default_size(600,400);
+    QApplication app();
 
-return app->run(window);
+    // Create a QPushButton (a button widget)
+    QPushButton button("Click me!");
+
+    // Set up a connection to handle the button click event
+    QObject::connect(&button, &QPushButton::clicked, [&]() {
+        button.setText("Hello, Qt!");
+    });
+
+    // Show the button and run the application event loop
+    button.show();
+    return app.exec();
 }
 
