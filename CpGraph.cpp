@@ -36,6 +36,7 @@ class Text
 
     // constructor to create the object, defaulting "" text so that it can be empty to start for future changing
     Text(int inx, int iny, std::string content = "");
+    Text(int inx, int iny, std::string content, Shape* par);
 
     // drawing
     void draw(QPainter* qp);
@@ -43,6 +44,7 @@ class Text
     private:
     float x, y;
     std::string text;
+    Shape* parent; 
 
     };
 
@@ -56,12 +58,25 @@ y = (float)iny;
 text = content;
 }
 
+Text::Text(int inx, int iny, std::string content, Shape* par)
+{
+// I don't like floats so I'm casting
+x = (float)inx;
+y = (float)iny;
+
+// setting the text
+text = content;
+
+// setting a parent to center the text
+parent = par;
+}
+
 void Text::draw(QPainter* qp)
 {
 // add options in the future for colour, size, font, etc...
 
 // setting the font
-QFont font("Arial", 20);
+QFont font("Arial", 14);
 qp->setFont(font);
 
 // getting the font details
@@ -70,14 +85,21 @@ QFontMetrics fontmets(font);
 // getting the height
 int fheight = fontmets.height();
 
+// getting the width
+int fwidth = fontmets.horizontalAdvance(text.c_str());
 
-// need an offset otherwise it won't draw to centre
-int offset = floor(fheight/2);
+// need a y-offset otherwise it won't draw to centre
+int yoffset = floor(fheight/4);
+
+// declaring the x-offset
+int xoffset = 0;
+
+// if there is a parent then change the offset
+if(parent != nullptr)
+    xoffset = (floor(fwidth/2));
 
 // writing the text
-qp->drawText(x-offset, y-offset, text.c_str());
-
-
+qp->drawText(x - xoffset, y+yoffset, text.c_str());
 }
 
 class Edge
@@ -197,6 +219,8 @@ class Node
 
     void draw(QPainter* qp);
 
+    vec2 coords(int print = 0) { return cir->coords(print); };
+
     private:
     vec2 position;
     Text* tex;
@@ -207,10 +231,10 @@ class Node
 Node::Node(vec2 pos, std::string label, int radius)
 {
 // again I don't like floats
-tex = new Text((int)pos.x, (int)pos.y, label);
 cir = new Circle((int)pos.x, (int)pos.y, radius);
+tex = new Text((int)pos.x, (int)pos.y, label, cir);
 
-
+position = cir->coords();
 
 };
 
@@ -242,10 +266,6 @@ protected:
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing);
 
-    for (Shape* s : shapes)
-        {
-        s->draw(&p);
-        }
     for (Edge* e : edges)
         {
         e->draw(&p);
@@ -253,6 +273,10 @@ protected:
     for (Node* n : nodes)
         {
         n->draw(&p);
+        }
+    for (Shape* s : shapes)
+        {
+        s->draw(&p);
         }
     };
 
@@ -349,8 +373,12 @@ winman.add(e);
  */
 
 Node* node = new Node({100, 100}, "Hello", 50);
+Circle* c1 = new Circle(node->coords().x, node->coords().y, 5);
+
+
 
 winman.add(node);
+winman.add(c1);
 winman.setGeometry(100, 100, 400, 400);
 winman.show();
 
