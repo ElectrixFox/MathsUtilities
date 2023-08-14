@@ -20,9 +20,23 @@ std::regex pattern(R"((\d+):\s*((?:\d+\^\d+\s*\*\s*)*\d+\^\d+)$)");
 // opens the file to read
 std::ifstream file(filePath);
 
-// reads back all of the lines
+// all of the lines will be stored here
+std::vector<std::string> lines;
+
+// current line
 std::string line;
+
+// reads back all of the lines
 while (std::getline(file, line))
+    {
+    // adding the line to the stream
+    lines.push_back(line);
+    }
+
+// closes file
+file.close();
+
+for(std::string s : lines)
     {
     // arrays
     std::vector<int> facs;
@@ -30,27 +44,69 @@ while (std::getline(file, line))
 
     // gets all of the matches of the pattern
     std::smatch match;
-    if (std::regex_match(line, match, pattern))
+
+    if (std::regex_match(s, match, pattern))
         {
         // group 1 matches are the numbers
         int number = std::stoi(match[1]);
 
         // splits at the multiplication sign
         std::string factorString = match[2];
-        size_t startPos = 0;
-        size_t foundPos = factorString.find("*", startPos);
-        while (foundPos != std::string::npos)
-            {
-            std::string factorPart = factorString.substr(startPos, foundPos - startPos);
-            startPos = foundPos + 1;
-            foundPos = factorString.find("*", startPos);
 
-            // splits the factor part into the exponents and the factors
-            size_t caretPos = factorPart.find("^");
-            int factor = std::stoi(factorPart.substr(0, caretPos));
-            int exponent = std::stoi(factorPart.substr(caretPos + 1));
-            facs.push_back(factor);
-            exps.push_back(exponent);
+        int startPos = 0;
+        int foundPos = 0;
+
+        // there are x + 1 numbers
+        int numcount = (int)std::count(factorString.begin(), factorString.end(), '*') + 1;
+        std::cout << '\n' << numcount;
+
+        int a = 0;
+        int b = 0;
+
+        int c = 0;
+
+        for(int i = 0; i < numcount; i++)
+            {
+            std::cout << "\nIteration: " << ++c;
+            foundPos = (factorString.find("*", 0) != std::string::npos) ? factorString.find("*", 0) : -1;
+            std::cout << "\nFound at: " << foundPos;
+
+            // substring the string
+            factorString = factorString.substr(startPos, factorString.length()-startPos);  
+
+            if(foundPos == -1)
+                {   
+                // get back the base and the exponent
+                sscanf(factorString.c_str(), "%d^%d", &a, &b);
+
+                std::cout << '\n' << factorString << ": " << a << "^" << b;
+                
+                // push them to their respective queues
+                facs.push_back(a);
+                exps.push_back(b);
+                }
+            else
+                {
+                // substring the string
+                //factorString = factorString.substr(startPos, factorString.length());                
+
+                // get back the base and the exponent
+                sscanf(factorString.c_str(), "%d^%d", &a, &b);
+                
+                std::cout << '\n' << factorString << ": " << a << "^" << b;
+
+                // push them to their respective queues
+                facs.push_back(a);
+                exps.push_back(b);
+                }
+
+            
+            
+            //facs.push_back(a);
+            //exps.push_back(b);
+
+            // the new start pos will be the old found pos + 1
+            startPos = foundPos + 1;
             }
         
         // adds all of them to the respective global variables
@@ -59,9 +115,6 @@ while (std::getline(file, line))
         exponents.push_back(exps);
         }
     }
-
-// closes file
-file.close();
 }
 
 vec2 Shape::coords(int print)
@@ -329,8 +382,6 @@ if(event->button() == Qt::RightButton)
         vec2 s = e->getSourceCoords(), t = e->getTargetCoords();
         float dst = pointLineDist((vec2){(float)px, (float)py}, s, t);
 
-        std::cout << dst;
-
         // if it is within the bounds it is being clicked
         if(dst <= e->getWidth())
             {
@@ -482,8 +533,6 @@ if(cont == 0)
     return;
     }
 
-std::cout << "\n: " << active << ", " << clicked;
-
 // if there is already an active node and it isn't the clicked one
 if(active != nullptr && active != clicked)
     {
@@ -492,8 +541,6 @@ if(active != nullptr && active != clicked)
 
     // add the new edge
     add(e);
-
-    std::cout << "\nPrevious: " << prevcol;
 
     // change the colour of the active shape back
     active->changeColour(prevcol);
@@ -507,24 +554,17 @@ if(active != nullptr && active != clicked)
 // if there isn't an active node select the clicked one
 else if(active == nullptr)
     {
-    std::cout << "\nSelecting: " << clicked->getID();
-
     // get the current colour to store
     prevcol = clicked->getColour();
 
     // change the colour to grey to indicate it has been selected
     clicked->changeColour("grey");
 
-    std::cout << "\nClicked: " << clicked;
-
     // set the node's shape as the active shape
     active = clicked;
     }
 else
-    {
-    std::cout << "\nPrevious: " << prevcol;
-    std::cout << "\nDeselecting: " << active->getID();
-    
+    {   
     // change colour back
     clicked->changeColour(prevcol);
 
