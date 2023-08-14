@@ -6,5 +6,6 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/qbuttongroup.h>
 #include <QtGui/QPainter>
+#include <QtCore/QElapsedTimer>
 
 int CpMain();
