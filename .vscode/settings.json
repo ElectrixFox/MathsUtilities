@@ -81,7 +81,10 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "qmenubar": "cpp",
+        "qmenu": "cpp",
+        "qaction": "cpp"
     },
     "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
     "C_Cpp.errorSquiggles": "enabled"

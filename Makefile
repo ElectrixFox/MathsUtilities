@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -I.
+CXXFLAGS = -I. -g
 
 APPNAME = main
 

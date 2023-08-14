@@ -306,10 +306,10 @@ cir->draw(qp);
 tex->draw(qp);
 };
 
-class WindowManager : public QWidget
+class GraphicWindow : public QWidget
 {
 public: 
-    WindowManager(QWidget* parent = nullptr) : QWidget(parent) { setMouseTracking(true); };
+    GraphicWindow(QWidget* parent = nullptr) : QWidget(parent) { setMouseTracking(true); };
 
     void add(Shape* shape);
     void add(Edge* edge);
@@ -323,7 +323,9 @@ protected:
     std::vector<Node*> nodes;
 
     Shape* active = nullptr;
+    std::string prevcol = "";
     int pressed = 0;
+    int selected = 0;
 
     void paintEvent(QPaintEvent* event) override 
     {    
@@ -383,12 +385,20 @@ protected:
     int px = event->pos().rx();
     int py = event->pos().ry();
 
+    // before setting a new active deselect the old and set its colour back
+    if(active != nullptr && prevcol != "")
+        {
+        active->changeColour(prevcol);
+        active = nullptr;
+        }
+
     // for each shape in shapes
     for(Shape* s : shapes)
         {
         // check the click is in the shape
         if(s->bbox.contains(px, py))
             {
+            
             // if it is then set the shape as active and moving
             s->moving = 1;
             active = s;
@@ -465,9 +475,6 @@ protected:
 
     // clicked shape
     Shape* clicked = nullptr;
-
-    // previous colour
-    static std::string prevcol = "";
 
     // vector of shapes so that they can be easily accessed
     std::vector<Shape*> shs;
@@ -563,41 +570,130 @@ protected:
 
 };
 
-void WindowManager::add(Shape* shape)
+void GraphicWindow::add(Shape* shape)
 {
 shapes.push_back(shape);
 }
 
-void WindowManager::add(Edge* edge)
+void GraphicWindow::add(Edge* edge)
 {
 edges.push_back(edge);
 }
 
-void WindowManager::add(Node* node)
+void GraphicWindow::add(Node* node)
 {
 nodes.push_back(node);
 }
 
-Shape* WindowManager::getShape(int index)
+Shape* GraphicWindow::getShape(int index)
 {
 return shapes[index];
+}
+
+int loadnew(GraphicWindow* gwin)
+{
+Node* number = new Node({50, 50}, "15", 14);
+gwin->add(number);
+
+Node* fac1 = new Node({100, 50}, "3", 14);
+Node* fac2 = new Node({150, 50}, "5", 14);
+
+gwin->add(fac1);
+gwin->add(fac2);
+
+return 0;
+}
+
+class MainWindow : public QMainWindow
+    {
+    public:
+    MainWindow(QWidget* parent = nullptr, GraphicWindow* graphicWindow = nullptr);
+
+    GraphicWindow* gwin;
+
+    public slots:
+    void pressy();
+
+    private:
+    QPushButton* button;
+    QMenuBar* menubar;
+    QDockWidget* dockWidget;
+    QWidget* dockContent;
+    QMenu* fileMen;
+    };
+
+MainWindow::MainWindow(QWidget* parent, GraphicWindow* graphicWindow)
+    : QMainWindow(parent), gwin(graphicWindow)
+{
+// menu bar setup
+menubar = new QMenuBar(this);
+setMenuBar(menubar);
+
+fileMen = new QMenu("FILE");
+menubar->addMenu(fileMen);
+
+// setting up the main widget
+dockWidget = new QDockWidget("Side pannel", this);
+
+// creating its' content widget
+dockContent = new QWidget(dockWidget);
+
+// setting the docking widget's content up
+dockWidget->setWidget(dockContent);
+
+// add the widget to the window
+addDockWidget(Qt::RightDockWidgetArea, dockWidget);
+
+// button setup
+button = new QPushButton("Load new set", dockContent);
+
+// the width of the button's text
+int wid = fontMetrics().horizontalAdvance("  Load new set  ");
+
+// setting the width and height of the button
+button->setFixedSize(wid, 30);
+
+// setting the minimum size to be the button's width so that it is always readable
+dockContent->setMinimumWidth(button->width());
+
+// connecting the button to the window so that it can be used
+connect(button, &QPushButton::clicked, this, pressy);
+};
+
+void MainWindow::pressy()
+{
+std::cout << "\n\nClicky Clicky";
+
+loadnew(this->gwin);
+update();
 }
 
 int CpMain()
 {
 int h = 0;
 QApplication app(h, {});
+MainWindow* window = new MainWindow();
 
-WindowManager winman;
-winman.setWindowTitle("Graphy");
+app.setActiveWindow(window);
+
+
+GraphicWindow gwin;
+window->gwin = &gwin;
+
+
+window->setWindowTitle("Graphy");
+window->setCentralWidget(&gwin);
 
 Node* n1 = new Node({100, 100}, "Hello", 25);
 Node* n2 = new Node({300, 300}, "World", 25);
 
-winman.add(n1);
-winman.add(n2);
-winman.setGeometry(100, 100, 400, 400);
-winman.show();
+gwin.add(n1);
+gwin.add(n2);
+
+window->setGeometry(100, 100, 400, 400);
+
+window->show();
+
 
 int result = app.exec();
 
