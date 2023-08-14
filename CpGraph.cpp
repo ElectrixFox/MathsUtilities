@@ -28,7 +28,7 @@ protected:
     int x, y;
 };
 
-Shape::Shape(int inx, int iny) : x(inx), y(iny) { id = n; n += 1;};
+Shape::Shape(int inx, int iny) : x(inx), y(iny) { id = n; n += 1; };
 
 class Text
     {
@@ -60,8 +60,24 @@ void Text::draw(QPainter* qp)
 {
 // add options in the future for colour, size, font, etc...
 
+// setting the font
+QFont font("Arial", 20);
+qp->setFont(font);
+
+// getting the font details
+QFontMetrics fontmets(font);
+
+// getting the height
+int fheight = fontmets.height();
+
+
+// need an offset otherwise it won't draw to centre
+int offset = floor(fheight/2);
+
 // writing the text
-qp->drawText(x, y, "Hello, Qt!");
+qp->drawText(x-offset, y-offset, text.c_str());
+
+
 }
 
 class Edge
@@ -174,6 +190,36 @@ vec2 pos2 = {x2 - r2*cos(p), y2 - r2*sin(p)};
 qp->drawLine(pos1.x, pos1.y, pos2.x, pos2.y);
 };
 
+class Node
+    {
+    public:
+    Node(vec2 pos, std::string label, int radius);
+
+    void draw(QPainter* qp);
+
+    private:
+    vec2 position;
+    Text* tex;
+    Circle* cir;
+
+    };
+
+Node::Node(vec2 pos, std::string label, int radius)
+{
+// again I don't like floats
+tex = new Text((int)pos.x, (int)pos.y, label);
+cir = new Circle((int)pos.x, (int)pos.y, radius);
+
+
+
+};
+
+void Node::draw(QPainter* qp)
+{
+cir->draw(qp);
+tex->draw(qp);
+};
+
 class WindowManager : public QWidget
 {
 public: 
@@ -181,11 +227,14 @@ public:
 
     void add(Shape* shape);
     void add(Edge* edge);
+    void add(Node* node);
+    
     Shape* getShape(int index);
 
 protected:
     std::vector<Shape*> shapes;
     std::vector<Edge*> edges;
+    std::vector<Node*> nodes;
     Shape* active = nullptr;
 
     void paintEvent(QPaintEvent* event) override 
@@ -200,6 +249,10 @@ protected:
     for (Edge* e : edges)
         {
         e->draw(&p);
+        }
+    for (Node* n : nodes)
+        {
+        n->draw(&p);
         }
     };
 
@@ -267,6 +320,11 @@ void WindowManager::add(Edge* edge)
 edges.push_back(edge);
 }
 
+void WindowManager::add(Node* node)
+{
+nodes.push_back(node);
+}
+
 Shape* WindowManager::getShape(int index)
 {
 return shapes[index];
@@ -282,17 +340,21 @@ QApplication app(h, {});
 WindowManager winman;
 winman.setWindowTitle("Graphy");
 
-Circle* c1 = new Circle(150, 150, 25);
+/* Circle* c1 = new Circle(150, 150, 25);
 Circle* c2 = new Circle(50, 50, 25);
 Edge* e = new Edge(c1, c2);
 winman.add(c1);
 winman.add(c2);
 winman.add(e);
+ */
 
+Node* node = new Node({100, 100}, "Hello", 50);
+
+winman.add(node);
 winman.setGeometry(100, 100, 400, 400);
 winman.show();
 
-QRectF f = winman.getShape(0)->bbox;
+//QRectF f = winman.getShape(0)->bbox;
 
 int result = app.exec();
 
