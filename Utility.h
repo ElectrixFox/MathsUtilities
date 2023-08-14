@@ -13,6 +13,7 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
+#include <regex>
 
 
 std::vector<int> loadPrimes(std::string filePath = "");

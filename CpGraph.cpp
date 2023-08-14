@@ -2,7 +2,82 @@
 
 int n = 1;
 
-struct vec2 { float x, y; };
+int top;
+
+std::vector<int> numbers;
+std::vector<std::vector<int>> factors;
+std::vector<std::vector<int>> exponents;
+
+void loadData(const std::string& filePath)
+{
+numbers.clear();
+factors.clear();
+exponents.clear();
+
+// regex pattern
+std::regex pattern(R"((\d+):\s*((?:\d+\^\d+\s*\*\s*)*\d+\^\d+)$)");
+
+// opens the file to read
+std::ifstream file(filePath);
+
+// reads back all of the lines
+std::string line;
+while (std::getline(file, line))
+    {
+    // arrays
+    std::vector<int> facs;
+    std::vector<int> exps;
+
+    // gets all of the matches of the pattern
+    std::smatch match;
+    if (std::regex_match(line, match, pattern))
+        {
+        // group 1 matches are the numbers
+        int number = std::stoi(match[1]);
+
+        // splits at the multiplication sign
+        std::string factorString = match[2];
+        size_t startPos = 0;
+        size_t foundPos = factorString.find("*", startPos);
+        while (foundPos != std::string::npos)
+            {
+            std::string factorPart = factorString.substr(startPos, foundPos - startPos);
+            startPos = foundPos + 1;
+            foundPos = factorString.find("*", startPos);
+
+            // splits the factor part into the exponents and the factors
+            size_t caretPos = factorPart.find("^");
+            int factor = std::stoi(factorPart.substr(0, caretPos));
+            int exponent = std::stoi(factorPart.substr(caretPos + 1));
+            facs.push_back(factor);
+            exps.push_back(exponent);
+            }
+        
+        // adds all of them to the respective global variables
+        numbers.push_back(number);
+        factors.push_back(facs);
+        exponents.push_back(exps);
+        }
+    }
+
+// closes file
+file.close();
+}
+
+vec2 Shape::coords(int print)
+{
+if(print == 1)
+    printf("\n(%f, %f)", x, y);
+
+return { (float)x, (float)y };
+}
+
+void Shape::move(int xto, int yto, int offset)
+{
+x = xto;
+y = yto;
+bbox.moveTo(x - offset, y - offset);
+}
 
 float pointLineDist(vec2 point, vec2 startPoint, vec2 endPoint)
 {
@@ -25,55 +100,12 @@ float dst = sqrt(pow((lambda*(c - a) + a - x), 2)+pow((lambda*(d - b) + b - y), 
 return dst;
 }
 
-class Shape
-{
-public:
-    Shape(int inx, int iny);
-
-    virtual void draw(QPainter* qp) {};
-    
-    vec2 coords(int print = 0) { if(print == 1) printf("\n(%f, %f)", x, y); return {(float)x, (float)y}; };
-    virtual void move(int xto, int yto, int offset = 0) { x = xto; y = yto; bbox.moveTo(x - offset, y - offset); };
-
-    void changeColour(std::string col);
-
-    int getID() { return id; };
-    std::string getColour() { return colour; };
-
-    QRectF bbox;
-
-    int moving = 0;
-
-protected:
-    int id;
-    int x, y;
-    std::string colour = "red";
-};
-
 void Shape::changeColour(std::string col)
 {
 colour = col;
 };
 
 Shape::Shape(int inx, int iny) : x(inx), y(iny) { id = n; n += 1; };
-
-class Text
-    {
-    public:
-
-    // constructor to create the object, defaulting "" text so that it can be empty to start for future changing
-    Text(int inx, int iny, std::string content = "");
-    Text(int inx, int iny, std::string content, Shape* par);
-
-    // drawing
-    void draw(QPainter* qp);
-
-    private:
-    float x, y;
-    std::string text;
-    Shape* parent; 
-
-    };
 
 Text::Text(int inx, int iny, std::string content)
 {
@@ -132,44 +164,6 @@ if(parent != nullptr)
 // writing the text
 qp->drawText(x - xoffset, y + yoffset, text.c_str());
 }
-
-class Edge
-{
-public:
-    // source and target shapes
-    Edge(Shape* insource, Shape* intarget, int wid = 1);
-
-    // drawing
-    void draw(QPainter* qp);
-
-    vec2 getSourceCoords(int print = 0) { return source->coords(print); };
-    vec2 getTargetCoords(int print = 0) { return target->coords(print); };
-    int getWidth() { return width; };
-
-private:
-    int width = 1;
-
-    Shape* source;
-    Shape* target;
-};
-
-class Circle : public Shape
-{
-public:
-    Circle(int inx, int iny, int radius);
-
-    void draw(QPainter* qp) override;
-
-    // overrides because of the different shapes
-    virtual void move(int xto, int yto, int offset = 0) override;
-
-    int getID() { return id; };
-    int getRadius() { return radius; };
-
-protected:
-    int radius;
-    int moving = 0;
-};
 
 Circle::Circle(int inx, int iny, int radius) : Shape(inx, iny), radius(radius)
 {
@@ -261,25 +255,6 @@ qp->setPen(pen);
 qp->drawLine(pos1.x, pos1.y, pos2.x, pos2.y);
 };
 
-class Node
-    {
-    public:
-    Node(vec2 pos, std::string label, int radius);
-
-    void draw(QPainter* qp);
-
-    vec2 coords(int print = 0) { return cir->coords(print); };
-
-    Shape* getShape();
-    Text* getText();
-
-    private:
-    vec2 position;
-    Text* tex;
-    Circle* cir;
-
-    };
-
 Shape* Node::getShape()
 {
 return cir;
@@ -306,270 +281,6 @@ cir->draw(qp);
 tex->draw(qp);
 };
 
-class GraphicWindow : public QWidget
-{
-public: 
-    GraphicWindow(QWidget* parent = nullptr) : QWidget(parent) { setMouseTracking(true); };
-
-    void add(Shape* shape);
-    void add(Edge* edge);
-    void add(Node* node);
-    
-    Shape* getShape(int index);
-
-protected:
-    std::vector<Shape*> shapes;
-    std::vector<Edge*> edges;
-    std::vector<Node*> nodes;
-
-    Shape* active = nullptr;
-    std::string prevcol = "";
-    int pressed = 0;
-    int selected = 0;
-
-    void paintEvent(QPaintEvent* event) override 
-    {    
-    QPainter p(this);
-    p.setRenderHint(QPainter::Antialiasing);
-
-    for (Edge* e : edges)
-        {
-        e->draw(&p);
-        }
-    for (Node* n : nodes)
-        {
-        n->draw(&p);
-        }
-    for (Shape* s : shapes)
-        {
-        s->draw(&p);
-        }
-    };
-
-    void mousePressEvent(QMouseEvent* event) override 
-    {
-    int px = event->pos().rx();
-    int py = event->pos().ry();
-
-    if(event->button() == Qt::RightButton)
-        {
-        for(int i = 0; i < edges.size(); i++)
-            {
-            Edge* e = edges[i];
-            vec2 s = e->getSourceCoords(), t = e->getTargetCoords();
-            float dst = pointLineDist((vec2){(float)px, (float)py}, s, t);
-
-            std::cout << dst;
-
-            // if it is within the bounds it is being clicked
-            if(dst <= e->getWidth())
-                {
-                edges.erase(edges.begin() + i);
-                update();
-                }
-            }
-        
-        }
-
-    // if it's a left click say it's pressed so that it can be used elsewhere
-    if(event->button() == Qt::LeftButton)
-        pressed = 1;
-    };
-
-    void mouseMoveEvent(QMouseEvent* event) override 
-    {
-    // early return if nothing is being pressed at the same time
-    if(pressed != 1)
-        return;
-
-    int px = event->pos().rx();
-    int py = event->pos().ry();
-
-    // before setting a new active deselect the old and set its colour back
-    if(active != nullptr && prevcol != "")
-        {
-        active->changeColour(prevcol);
-        active = nullptr;
-        }
-
-    // for each shape in shapes
-    for(Shape* s : shapes)
-        {
-        // check the click is in the shape
-        if(s->bbox.contains(px, py))
-            {
-            
-            // if it is then set the shape as active and moving
-            s->moving = 1;
-            active = s;
-            }
-        }
-    
-    // for each node in nodes
-    for (Node* n : nodes)
-        {
-        // get the shape of the node
-        Shape* s = n->getShape();
-        
-        // check the click is in the shape
-        if(s->bbox.contains(px, py))
-            {
-            // if it is then set the shape as active and moving
-            s->moving = 1;
-            active = s;
-            }
-        }
-    
-
-    // if there is something active
-    if(active != nullptr)
-        {
-        // and the active thing is moving
-        if(active->moving == 1)
-            {
-            // get the position of the mouse
-            int x = event->pos().rx();
-            int y = event->pos().ry();
-            
-            // move the active item to the mouse's position
-            active->move(x, y);
-
-            // redraw
-            update();
-            }
-        }
-    };
-
-    void mouseReleaseEvent(QMouseEvent* event) override
-    {
-    // getting the position of the release
-    int px = event->pos().rx();
-    int py = event->pos().ry();
-
-    // checking if there is an active object
-    if(active != nullptr)
-        {
-        // checking the active object is where the mouse was released and that something is actually moving
-        if(active->bbox.contains(px, py) && active->moving == 1)
-            {            
-            // set the shape as inactive and stop it moving
-            active->moving = 0;
-            active = nullptr;
-            }
-        }
-
-    pressed = 0;
-    };
-
-    void mouseDoubleClickEvent(QMouseEvent* event) override
-    {
-    // change if right click is needed
-    if(event->button() != Qt::LeftButton) return;
-
-    // getting the position of the click
-    int px = event->pos().rx();
-    int py = event->pos().ry();
-
-    // flag to show if the box contains the pointer
-    int cont = 0;
-
-    // clicked shape
-    Shape* clicked = nullptr;
-
-    // vector of shapes so that they can be easily accessed
-    std::vector<Shape*> shs;
-
-    // getting all of the node's shapes into a vector
-    for (Node* n : nodes)
-        shs.push_back(n->getShape());
-
-    // going through all of the node's to check if they are valid options
-    for (Shape* s : shs)
-        {
-        // if the click is on a box
-        if(s->bbox.contains(px, py))
-            {
-            clicked = s;
-            cont = 1;
-            }
-        }
-    
-    // if the click wasn't in a node deselect and return
-    if(cont == 0)
-        {
-        if(active != nullptr)
-            {
-            std::cout << "\nPrevious: " << prevcol;
-            
-            // remove the node's shape from active
-            std::cout << "\nDeselecting: " << active->getID();
-
-            // change it's colour back
-            active->changeColour(prevcol);
-            active = nullptr;
-
-            // redraw
-            update();
-            }
-
-        return;
-        }
-
-    std::cout << "\n: " << active << ", " << clicked;
-
-    // if there is already an active node and it isn't the clicked one
-    if(active != nullptr && active != clicked)
-        {
-        // create a new edge between the active and the newly selected
-        Edge* e = new Edge(active, clicked, 2);
-
-        // add the new edge
-        add(e);
-
-        std::cout << "\nPrevious: " << prevcol;
-
-        // change the colour of the active shape back
-        active->changeColour(prevcol);
-
-        // make the shape inactive
-        active = nullptr;
-
-        // redraw
-        update();
-        }
-    // if there isn't an active node select the clicked one
-    else if(active == nullptr)
-        {
-        std::cout << "\nSelecting: " << clicked->getID();
-
-        // get the current colour to store
-        prevcol = clicked->getColour();
-
-        // change the colour to grey to indicate it has been selected
-        clicked->changeColour("grey");
-
-        std::cout << "\nClicked: " << clicked;
-
-        // set the node's shape as the active shape
-        active = clicked;
-        }
-    else
-        {
-        std::cout << "\nPrevious: " << prevcol;
-        std::cout << "\nDeselecting: " << active->getID();
-        
-        // change colour back
-        clicked->changeColour(prevcol);
-
-        // remove the node's shape from active
-        active = nullptr;
-        }
-
-    update();
-    };
-
-};
-
 void GraphicWindow::add(Shape* shape)
 {
 shapes.push_back(shape);
@@ -585,6 +296,245 @@ void GraphicWindow::add(Node* node)
 nodes.push_back(node);
 }
 
+
+void GraphicWindow::paintEvent(QPaintEvent* event)
+{    
+QPainter p(this);
+p.setRenderHint(QPainter::Antialiasing);
+
+for (Edge* e : edges)
+    {
+    e->draw(&p);
+    }
+for (Node* n : nodes)
+    {
+    n->draw(&p);
+    }
+for (Shape* s : shapes)
+    {
+    s->draw(&p);
+    }
+};
+
+void GraphicWindow::mousePressEvent(QMouseEvent* event)
+{
+int px = event->pos().rx();
+int py = event->pos().ry();
+
+if(event->button() == Qt::RightButton)
+    {
+    for(int i = 0; i < edges.size(); i++)
+        {
+        Edge* e = edges[i];
+        vec2 s = e->getSourceCoords(), t = e->getTargetCoords();
+        float dst = pointLineDist((vec2){(float)px, (float)py}, s, t);
+
+        std::cout << dst;
+
+        // if it is within the bounds it is being clicked
+        if(dst <= e->getWidth())
+            {
+            edges.erase(edges.begin() + i);
+            update();
+            }
+        }
+    
+    }
+
+// if it's a left click say it's pressed so that it can be used elsewhere
+if(event->button() == Qt::LeftButton)
+    pressed = 1;
+};
+
+void GraphicWindow::mouseMoveEvent(QMouseEvent* event)
+{
+// early return if nothing is being pressed at the same time
+if(pressed != 1)
+    return;
+
+int px = event->pos().rx();
+int py = event->pos().ry();
+
+// before setting a new active deselect the old and set its colour back
+if(active != nullptr && prevcol != "")
+    {
+    active->changeColour(prevcol);
+    active = nullptr;
+    }
+
+// for each shape in shapes
+for(Shape* s : shapes)
+    {
+    // check the click is in the shape
+    if(s->bbox.contains(px, py))
+        {
+        
+        // if it is then set the shape as active and moving
+        s->moving = 1;
+        active = s;
+        }
+    }
+
+// for each node in nodes
+for (Node* n : nodes)
+    {
+    // get the shape of the node
+    Shape* s = n->getShape();
+    
+    // check the click is in the shape
+    if(s->bbox.contains(px, py))
+        {
+        // if it is then set the shape as active and moving
+        s->moving = 1;
+        active = s;
+        }
+    }
+
+
+// if there is something active
+if(active != nullptr)
+    {
+    // and the active thing is moving
+    if(active->moving == 1)
+        {
+        // get the position of the mouse
+        int x = event->pos().rx();
+        int y = event->pos().ry();
+        
+        // move the active item to the mouse's position
+        active->move(x, y);
+
+        // redraw
+        update();
+        }
+    }
+};
+
+void GraphicWindow::mouseReleaseEvent(QMouseEvent* event)
+{
+// getting the position of the release
+int px = event->pos().rx();
+int py = event->pos().ry();
+
+// checking if there is an active object
+if(active != nullptr)
+    {
+    // checking the active object is where the mouse was released and that something is actually moving
+    if(active->bbox.contains(px, py) && active->moving == 1)
+        {            
+        // set the shape as inactive and stop it moving
+        active->moving = 0;
+        active = nullptr;
+        }
+    }
+
+pressed = 0;
+};
+
+void GraphicWindow::mouseDoubleClickEvent(QMouseEvent* event) 
+{
+// change if right click is needed
+if(event->button() != Qt::LeftButton) return;
+
+// getting the position of the click
+int px = event->pos().rx();
+int py = event->pos().ry();
+
+// flag to show if the box contains the pointer
+int cont = 0;
+
+// clicked shape
+Shape* clicked = nullptr;
+
+// vector of shapes so that they can be easily accessed
+std::vector<Shape*> shs;
+
+// getting all of the node's shapes into a vector
+for (Node* n : nodes)
+    shs.push_back(n->getShape());
+
+// going through all of the node's to check if they are valid options
+for (Shape* s : shs)
+    {
+    // if the click is on a box
+    if(s->bbox.contains(px, py))
+        {
+        clicked = s;
+        cont = 1;
+        }
+    }
+
+// if the click wasn't in a node deselect and return
+if(cont == 0)
+    {
+    if(active != nullptr)
+        {        
+        // change it's colour back
+        active->changeColour(prevcol);
+
+        // remove the node's shape from active
+        active = nullptr;
+
+        // redraw
+        update();
+        }
+
+    return;
+    }
+
+std::cout << "\n: " << active << ", " << clicked;
+
+// if there is already an active node and it isn't the clicked one
+if(active != nullptr && active != clicked)
+    {
+    // create a new edge between the active and the newly selected
+    Edge* e = new Edge(active, clicked, 2);
+
+    // add the new edge
+    add(e);
+
+    std::cout << "\nPrevious: " << prevcol;
+
+    // change the colour of the active shape back
+    active->changeColour(prevcol);
+
+    // make the shape inactive
+    active = nullptr;
+
+    // redraw
+    update();
+    }
+// if there isn't an active node select the clicked one
+else if(active == nullptr)
+    {
+    std::cout << "\nSelecting: " << clicked->getID();
+
+    // get the current colour to store
+    prevcol = clicked->getColour();
+
+    // change the colour to grey to indicate it has been selected
+    clicked->changeColour("grey");
+
+    std::cout << "\nClicked: " << clicked;
+
+    // set the node's shape as the active shape
+    active = clicked;
+    }
+else
+    {
+    std::cout << "\nPrevious: " << prevcol;
+    std::cout << "\nDeselecting: " << active->getID();
+    
+    // change colour back
+    clicked->changeColour(prevcol);
+
+    // remove the node's shape from active
+    active = nullptr;
+    }
+
+update();
+};
+
 Shape* GraphicWindow::getShape(int index)
 {
 return shapes[index];
@@ -592,35 +542,23 @@ return shapes[index];
 
 int loadnew(GraphicWindow* gwin)
 {
-Node* number = new Node({50, 50}, "15", 14);
+Node* number = new Node({50, 50}, std::to_string(numbers[top]), 14);
 gwin->add(number);
 
-Node* fac1 = new Node({100, 50}, "3", 14);
-Node* fac2 = new Node({150, 50}, "5", 14);
+int count = 0;
+for (int i : factors[top])
+    {
+    Node* n = new Node({(float)(100 + count*50), (float)50}, std::to_string(i), 14);
 
-gwin->add(fac1);
-gwin->add(fac2);
+    gwin->add(n);
+
+    count++;
+    }
+
+top++;
 
 return 0;
 }
-
-class MainWindow : public QMainWindow
-    {
-    public:
-    MainWindow(QWidget* parent = nullptr, GraphicWindow* graphicWindow = nullptr);
-
-    GraphicWindow* gwin;
-
-    public slots:
-    void pressy();
-
-    private:
-    QPushButton* button;
-    QMenuBar* menubar;
-    QDockWidget* dockWidget;
-    QWidget* dockContent;
-    QMenu* fileMen;
-    };
 
 MainWindow::MainWindow(QWidget* parent, GraphicWindow* graphicWindow)
     : QMainWindow(parent), gwin(graphicWindow)
@@ -674,21 +612,15 @@ int h = 0;
 QApplication app(h, {});
 MainWindow* window = new MainWindow();
 
-app.setActiveWindow(window);
+loadData("Composite.txt");
 
+app.setActiveWindow(window);
 
 GraphicWindow gwin;
 window->gwin = &gwin;
 
-
 window->setWindowTitle("Graphy");
 window->setCentralWidget(&gwin);
-
-Node* n1 = new Node({100, 100}, "Hello", 25);
-Node* n2 = new Node({300, 300}, "World", 25);
-
-gwin.add(n1);
-gwin.add(n2);
 
 window->setGeometry(100, 100, 400, 400);
 
