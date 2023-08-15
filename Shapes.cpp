@@ -1,4 +1,4 @@
-#include "CpGraph.h"
+#include "Shapes.h"
 
 int n = 1;
 
@@ -343,7 +343,7 @@ for(Number n : nums)
 return "";
 }
 
-void Node::addFactor(int factor, int power)
+void Node::addFactor(Number n)
 {
-nums.push_back({factor, power});
+nums.push_back(n);
 }

@@ -1,5 +1,5 @@
-#ifndef CGRAPH_H
-#define CGRAPH_H
+#ifndef SHAPES_H
+#define SHAPES_H
 
 #include "Utility.h"
 #include "qt_pch.h"
@@ -150,39 +150,11 @@ class Node : public Circle
 
     std::string getText() { return textContent; };
 
-    void addFactor(int factor, int power);
+    void addFactor(Number n);
 
     private:
     Line e;
     std::vector<Number> nums;
     };
-
-
-
-/* 
-class Edge : Line
-    {
-    public:
-    // source and target shapes
-    Edge(Shape* insource, Shape* intarget, int wid = 1);
-
-    // drawing
-    void draw(QPainter* qp);
-
-    vec2 getSourceCoords(int print = 0) { return source->coords(print); };
-    vec2 getTargetCoords(int print = 0) { return target->coords(print); };
-    int getWidth() { return width; };
-
-    void createText(std::string content);
-
-    private:
-    int width = 1;
-    Text* tex = nullptr;
-
-    Shape* source;
-    Shape* target;
-    };
-
- */
 
 #endif

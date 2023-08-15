@@ -5,7 +5,8 @@
 #include "qt_pch.h"
 #include "Factor.h"
 
-#include "CpGraph.h"
+#include "Shapes.h"
+#include "Composite.h"
 
 class GraphicWindow : public QWidget
     {
@@ -30,6 +31,10 @@ class GraphicWindow : public QWidget
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent* event) override;
+
+    private:
+    
+
     };
 
 class Table : public QTableWidget
@@ -46,7 +51,7 @@ class Table : public QTableWidget
 
     };
 
-int loadnew(GraphicWindow* gwin, Table* table);
+int loadnew(GraphicWindow* gwin, DetailContainer* dc, Table* table);
 
 class MainWindow : public QMainWindow
     {
@@ -54,17 +59,15 @@ class MainWindow : public QMainWindow
     MainWindow(QWidget* parent = nullptr, GraphicWindow* graphicWindow = nullptr);
 
     GraphicWindow* gwin;
+    DetailContainer dc;
 
     public slots:
     void pressy();
+    void uniqueFactors();
 
     private:
-    QPushButton* button;
-    QMenuBar* menubar;
-    QDockWidget* dockWidget;
-    QWidget* dockContent;
+    std::vector<QWidget*> widgets;
     QVBoxLayout* dockinglayout;
-    QMenu* fileMen;
     Table* table;
     };
 
