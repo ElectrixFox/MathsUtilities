@@ -125,6 +125,9 @@ void GraphicWindow::mouseDoubleClickEvent(QMouseEvent* event)
 // change if right click is needed
 if(event->button() != Qt::LeftButton) return;
 
+// don't add - flag
+int nadd = 0;
+
 // getting the position of the click
 int px = event->pos().rx();
 int py = event->pos().ry();
@@ -188,7 +191,7 @@ if(active != nullptr && active != clicked)
         int primeTest1 = isPrime(ilab1);
         int primeTest2 = isPrime(ilab2);
 
-        if((primeTest1 == 1 && primeTest2 == 1) || (primeTest1 == 0 && primeTest2 == 0)) goto end;
+        if((primeTest1 == 1 && primeTest2 == 1) || (primeTest1 == 0 && primeTest2 == 0)) nadd = 1;
 
         // if the first is prime find the power it should be using
         if(primeTest1 == 1)
@@ -197,7 +200,7 @@ if(active != nullptr && active != clicked)
         else if (primeTest2 == 1)
             power = ((Node*)active)->preemptPower(lab2);
         
-        if(power == "") goto end;
+        if(power == "") nadd = 41;
 
         if(power == "1") power = "";
 
@@ -206,9 +209,9 @@ if(active != nullptr && active != clicked)
         }
 
     // add the new edge
-    add(l);
+    if(nadd == 0 || factorConnect == 1)
+        add(l);
 
-    end:
 
     // change the colour of the active shape back
     active->revertColour();
@@ -243,6 +246,20 @@ else
 update();
 };
 
+void GraphicWindow::remAll()
+{
+shapes.erase(shapes.begin(), shapes.end());
+
+update();
+}
+
+int GraphicWindow::toggleConnect()
+{
+factorConnect ^= 1;
+
+return factorConnect;
+}
+
 Shape* GraphicWindow::getShape(int index)
 {
 return shapes[index];
@@ -270,50 +287,77 @@ dockWidget->setWidget(dockContent);
 
 // setting up the layout of the widget
 dockinglayout = new QVBoxLayout(dockContent);
+QHBoxLayout* buttonlayout = new QHBoxLayout();
+QVBoxLayout* tablelayout = new QVBoxLayout();
 
 // add the widget to the window
 addDockWidget(Qt::RightDockWidgetArea, dockWidget);
 
 // adding the unique factor checkbox
-QCheckBox* checkbox = new QCheckBox("Unique Factors", dockContent);
+QCheckBox* uniqueFac = new QCheckBox("Unique Factors", dockContent);
+
+QCheckBox* onlyFac = new QCheckBox("Only Factors", dockContent);
+onlyFac->setChecked(1);
 
 table = new Table(dockContent);
+
 table->resizeColumnsToContents();
 table->resizeRowsToContents();
 
 // button setup
-QPushButton* button = new QPushButton("Load new set", dockContent);
+QPushButton* loadNew = new QPushButton("Load new set", dockContent);
+
+QPushButton* resetButton = new QPushButton("Reset", dockContent);
 
 // the width of the button's text
 int wid = fontMetrics().horizontalAdvance("  Load new set  ");
 
 // setting the width and height of the button
-button->setFixedSize(wid, 30);
+loadNew->setFixedSize(wid, 30);
+resetButton->setFixedSize(fontMetrics().horizontalAdvance("  Reset  "), 30);
 
-// setting the dock layout
-dockContent->setLayout(dockinglayout);
+
+// setting the layout
+dockinglayout->setContentsMargins(0, 0, 0, 0);
+
 
 // setting the minimum size to be the button's width so that it is always readable
 dockContent->setMinimumWidth(table->width());
+
+// set spacing
+dockinglayout->setSpacing(0);
 
 // adding them all to here to stop them having to be individually stored in the class
 widgets.push_back(fileMen);
 widgets.push_back(dockWidget);
 widgets.push_back(dockContent);
 widgets.push_back(table);
-widgets.push_back(button);
+widgets.push_back(loadNew);
+widgets.push_back(resetButton);
 
 // adding both widgets to the dock
-dockinglayout->addWidget(button);
-dockinglayout->addWidget(checkbox);
-dockinglayout->addWidget(table);
+buttonlayout->addWidget(loadNew);
+buttonlayout->addWidget(resetButton);
+tablelayout->addWidget(uniqueFac);
+tablelayout->addWidget(onlyFac);
+tablelayout->addWidget(table);
+
+// add the layout's together
+dockinglayout->addLayout(buttonlayout);
+dockinglayout->addLayout(tablelayout);
+
+
+// setting the dock layout
+dockContent->setLayout(dockinglayout);
 
 // setting the main widget of the dock
 dockWidget->setWidget(dockContent);
 
 // connecting the button to the window so that it can be used
-connect(button, &QPushButton::clicked, this, pressy);
-connect(checkbox, &QCheckBox::clicked, this, uniqueFactors);
+connect(loadNew, &QPushButton::clicked, this, pressy);
+connect(resetButton, &QPushButton::clicked, this, remAll);
+connect(uniqueFac, &QCheckBox::clicked, this, uniqueFactors);
+connect(onlyFac, &QCheckBox::clicked, this, onlyFactors);
 };
 
 Table::Table(QWidget* parent)
@@ -321,7 +365,28 @@ Table::Table(QWidget* parent)
 {
 // setting the rows and the columns
 this->setRowCount(3);
-this->setColumnCount(2);
+this->setColumnCount(3);
+
+resizeRowsToContents();
+resizeColumnsToContents();
+}
+
+void Table::minimizeTable()
+{
+int totalH = 0;
+for (int i = 0; i < rowCount(); i++)
+    {
+    totalH += rowHeight(i);
+    }
+
+int totalW = 0;
+for (int i = 0; i < columnCount(); i++)
+    {
+    totalW += columnWidth(i);
+    }
+
+setFixedHeight(totalH);
+setFixedWidth(totalW);
 }
 
 void Table::add(vec2 tablePos, std::string item)
@@ -341,6 +406,10 @@ if(rc <= tablePos.x)
 // setting the new item
 setItem(tablePos.x, tablePos.y, element);
 
+// resizing
+resizeRowsToContents();
+resizeColumnsToContents();
+
 // updating the table
 update();
 
@@ -348,9 +417,14 @@ update();
 tableItems.push_back(element);
 }
 
+void Table::Clear()
+{
+clearContents();
+}
+
 int loadnew(GraphicWindow* gwin, DetailContainer* dc, Table* table)
 {
-static int curRow = 0;
+int curRow = dc->getTopV();
 
 Detail detail = dc->getTop();
 
@@ -369,17 +443,16 @@ for (Number n : detail.factors)
     }
 
 // a collection of the factors
-std::stringstream ss;
+std::stringstream ss[2];
 
 int count = 0;
 for (Number i : detail.factors)
     {
     // doing this before so they can go straight to the table
     std::string strnum = std::to_string(i.base);
-    ss << strnum << ", ";
+    ss[0] << strnum << ", ";
     
     if(dc->hasBeen(i.base) == 1 && dc->getUniqueFactor() == 1) continue;
-
 
     Node* n = new Node({(float)(100 + count*50), (float)50}, strnum, 14, "light blue");
     
@@ -389,15 +462,27 @@ for (Number i : detail.factors)
     }
 
 // the stream as a string
-std::string compactStr = ss.str();
+std::string compactStr = ss[0].str();
 
 // the final string -2 as it gets rid of the extra ", "
 std::string final = compactStr.substr(0, compactStr.length()-2);
 
 table->add({(float)curRow, 1}, final);
 
+for (Number n : detail.factors)
+    {
+    ss[1] << n.getStr() << " * ";
+    }
+
+// the exponential stream as a string
+std::string Nucompact = ss[1].str();
+
+// the final exponential nums string -3 as it gets rid of the extra " * "
+std::string Nufinal = Nucompact.substr(0, Nucompact.length()-3);
+
+table->add({(float)curRow, 2}, Nufinal);
+
 dc->incrementTop();
-curRow++;
 
 return 0;
 }
@@ -409,6 +494,20 @@ std::cout << "\n\nClicky Clicky";
 // loads the new nodes
 loadnew(this->gwin, &dc, this->table);
 update();
+}
+
+void MainWindow::remAll()
+{
+gwin->remAll();
+
+dc.Reset();
+
+table->Clear();
+}
+
+void MainWindow::onlyFactors()
+{
+gwin->toggleConnect();
 }
 
 void MainWindow::uniqueFactors()

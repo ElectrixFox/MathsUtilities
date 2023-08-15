@@ -18,10 +18,13 @@ class DetailContainer
     DetailContainer() { loadData("Composite.txt"); };
 
     Detail getTop();
+    const int getTopV() const { return top; };
     void incrementTop() { top++; };
 
     int toggleUniqueFactor() { uniFactors ^= 1; return uniFactors; };
     int getUniqueFactor() { return uniFactors; };
+
+    void Reset() { top = 0; };
 
     // has the factor already been
     int hasBeen(int value);

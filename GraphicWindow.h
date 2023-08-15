@@ -17,11 +17,16 @@ class GraphicWindow : public QWidget
 
     Shape* getShape(int index);
 
+    void remAll();
+
+    int toggleConnect();
+
     protected:
     std::vector<Shape*> shapes;
 
     Shape* active = nullptr;
     std::string prevcol = "";
+    int factorConnect = 0;
     int pressed = 0;
     int selected = 0;
 
@@ -32,9 +37,6 @@ class GraphicWindow : public QWidget
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent* event) override;
 
-    private:
-    
-
     };
 
 class Table : public QTableWidget
@@ -43,6 +45,10 @@ class Table : public QTableWidget
     Table(QWidget* parent = nullptr);
 
     void add(vec2 tablePos, std::string item);
+
+    void minimizeTable();
+
+    void Clear();
 
     private:
 
@@ -63,7 +69,10 @@ class MainWindow : public QMainWindow
 
     public slots:
     void pressy();
+    void remAll();
     void uniqueFactors();
+    void onlyFactors();
+
 
     private:
     std::vector<QWidget*> widgets;
