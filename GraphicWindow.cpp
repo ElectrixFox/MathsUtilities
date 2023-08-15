@@ -21,6 +21,22 @@ void GraphicWindow::mousePressEvent(QMouseEvent* event)
 int px = event->pos().rx();
 int py = event->pos().ry();
 
+// if a shift click is happening
+if(event->button() == Qt::LeftButton && event->modifiers() == Qt::ShiftModifier)
+    {
+    // deselects anything selected
+    Deselect();
+
+    // if there isn't anything colliding
+    if(Colliding({px, py}) == -1)
+        {
+        SRectangle* re = new SRectangle({event.x, event.y}, 0, 0);
+
+        // start the box selecting
+        boxSelecting = 1;
+        }
+    }
+
 if(event->button() == Qt::RightButton)
     {
     for(int i = 0; i < shapes.size(); i++)
@@ -45,6 +61,7 @@ if(event->button() == Qt::RightButton)
     
     }
 
+
 // if it's a left click say it's pressed so that it can be used elsewhere
 if(event->button() == Qt::LeftButton)
     pressed = 1;
@@ -52,6 +69,10 @@ if(event->button() == Qt::LeftButton)
 
 void GraphicWindow::mouseMoveEvent(QMouseEvent* event)
 {
+// start box selecting
+
+
+
 // early return if nothing is being pressed at the same time
 if(pressed != 1)
     return;
@@ -245,6 +266,45 @@ else
 
 update();
 };
+
+void GraphicWindow::Select(Shape* s)
+{
+Deselect();
+
+active = s;
+}
+
+void GraphicWindow::Deselect()
+{
+if(active == nullptr) return;
+
+// change it's colour back
+active->revertColour();
+
+// remove the node's shape from active
+active = nullptr;
+
+// redraw
+update(); 
+}
+
+int GraphicWindow::Colliding(vec2 mPos)
+{
+for(int i = 0; i < shapes.size(); i++)
+    {
+    Shape* s = shapes[i];
+
+    // if the shape contains the position
+    if(s->bbox.contains(mPos.x, mPos.y))
+        {
+        // return the shape index
+        return i;
+        }
+    }
+
+
+return -1;
+}
 
 void GraphicWindow::remAll()
 {

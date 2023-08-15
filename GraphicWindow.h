@@ -29,6 +29,7 @@ class GraphicWindow : public QWidget
     int factorConnect = 0;
     int pressed = 0;
     int selected = 0;
+    int boxSelecting = 0;
 
     void paintEvent(QPaintEvent* event) override;
 
@@ -36,6 +37,11 @@ class GraphicWindow : public QWidget
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent* event) override;
+
+    void Select(Shape* s);
+    void Deselect();
+
+    int Colliding(vec2 mPos);
 
     };
 
