@@ -8,17 +8,25 @@
 #include <QtGui/QPainter>
 #include <QtCore/QElapsedTimer>
 #include <QtWidgets/QMenuBar>
+#include <QtWidgets/QTableWidget>
+#include <QtWidgets/QTableWidgetItem>
 #include <QtWidgets/QMenu>
+#include <QtWidgets/QHeaderView>
 #include <QtWidgets/QAction>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QVBoxLayout>
 
 struct vec2 { float x, y; };
 
+void loadData(const std::string& filePath);
+
+float pointLineDist(vec2 point, vec2 startPoint, vec2 endPoint);
+
 class Shape
     {
     public:
     Shape(int inx, int iny);
+    Shape(int inx, int iny, std::string colour);
 
     virtual void draw(QPainter* qp) {};
 
@@ -26,6 +34,7 @@ class Shape
     virtual void move(int xto, int yto, int offset = 0);
 
     void changeColour(std::string col);
+    void revertColour();
 
     int getID() { return id; };
     std::string getColour() { return colour; };
@@ -38,8 +47,8 @@ class Shape
     int id;
     int x, y;
     std::string colour = "red";
+    const std::string origionalColour; 
     };
-
 
 class Text
     {
@@ -56,7 +65,6 @@ class Text
     std::string text;
     Shape* parent; 
     };
-
 
 class Edge
     {
@@ -81,7 +89,7 @@ class Edge
 class Circle : public Shape
     {
     public:
-    Circle(int inx, int iny, int radius);
+    Circle(int inx, int iny, int radius, std::string col = "red");
 
     void draw(QPainter* qp) override;
 
@@ -96,11 +104,10 @@ class Circle : public Shape
     int moving = 0;
     };
 
-
 class Node
     {
     public:
-    Node(vec2 pos, std::string label, int radius);
+    Node(vec2 pos, std::string label, int radius, std::string col = "red");
 
     void draw(QPainter* qp);
 
@@ -114,7 +121,6 @@ class Node
     Text* tex;
     Circle* cir;
     };
-
 
 class GraphicWindow : public QWidget
     {
@@ -145,6 +151,19 @@ class GraphicWindow : public QWidget
     void mouseDoubleClickEvent(QMouseEvent* event) override;
     };
 
+class Table : public QTableWidget
+    {
+    public:
+    Table(QWidget* parent = nullptr);
+
+    void add(vec2 tablePos, std::string item);
+
+    private:
+
+    std::vector<QTableWidgetItem*> tableItems;
+    
+
+    };
 
 class MainWindow : public QMainWindow
     {
@@ -161,17 +180,11 @@ class MainWindow : public QMainWindow
     QMenuBar* menubar;
     QDockWidget* dockWidget;
     QWidget* dockContent;
+    QVBoxLayout* dockinglayout;
     QMenu* fileMen;
+    Table* table;
     };
 
-
-
-
-
-
-
-
-
-
+int loadnew(GraphicWindow* gwin, Table* table);
 
 int CpMain();

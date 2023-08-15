@@ -58,7 +58,6 @@ for(std::string s : lines)
 
         // there are x + 1 numbers
         int numcount = (int)std::count(factorString.begin(), factorString.end(), '*') + 1;
-        std::cout << '\n' << numcount;
 
         int a = 0;
         int b = 0;
@@ -67,9 +66,7 @@ for(std::string s : lines)
 
         for(int i = 0; i < numcount; i++)
             {
-            std::cout << "\nIteration: " << ++c;
             foundPos = (factorString.find("*", 0) != std::string::npos) ? factorString.find("*", 0) : -1;
-            std::cout << "\nFound at: " << foundPos;
 
             // substring the string
             factorString = factorString.substr(startPos, factorString.length()-startPos);  
@@ -78,8 +75,6 @@ for(std::string s : lines)
                 {   
                 // get back the base and the exponent
                 sscanf(factorString.c_str(), "%d^%d", &a, &b);
-
-                std::cout << '\n' << factorString << ": " << a << "^" << b;
                 
                 // push them to their respective queues
                 facs.push_back(a);
@@ -87,23 +82,13 @@ for(std::string s : lines)
                 }
             else
                 {
-                // substring the string
-                //factorString = factorString.substr(startPos, factorString.length());                
-
                 // get back the base and the exponent
                 sscanf(factorString.c_str(), "%d^%d", &a, &b);
                 
-                std::cout << '\n' << factorString << ": " << a << "^" << b;
-
                 // push them to their respective queues
                 facs.push_back(a);
                 exps.push_back(b);
                 }
-
-            
-            
-            //facs.push_back(a);
-            //exps.push_back(b);
 
             // the new start pos will be the old found pos + 1
             startPos = foundPos + 1;
@@ -115,21 +100,6 @@ for(std::string s : lines)
         exponents.push_back(exps);
         }
     }
-}
-
-vec2 Shape::coords(int print)
-{
-if(print == 1)
-    printf("\n(%f, %f)", x, y);
-
-return { (float)x, (float)y };
-}
-
-void Shape::move(int xto, int yto, int offset)
-{
-x = xto;
-y = yto;
-bbox.moveTo(x - offset, y - offset);
 }
 
 float pointLineDist(vec2 point, vec2 startPoint, vec2 endPoint)
@@ -153,12 +123,39 @@ float dst = sqrt(pow((lambda*(c - a) + a - x), 2)+pow((lambda*(d - b) + b - y), 
 return dst;
 }
 
+vec2 Shape::coords(int print)
+{
+if(print == 1)
+    printf("\n(%f, %f)", x, y);
+
+return { (float)x, (float)y };
+}
+
+void Shape::move(int xto, int yto, int offset)
+{
+x = xto;
+y = yto;
+bbox.moveTo(x - offset, y - offset);
+}
+
 void Shape::changeColour(std::string col)
 {
 colour = col;
 };
 
-Shape::Shape(int inx, int iny) : x(inx), y(iny) { id = n; n += 1; };
+Shape::Shape(int inx, int iny) : x(inx), y(iny), origionalColour("red") { id = n; n += 1; };
+
+Shape::Shape(int inx, int iny, std::string col)
+: x(inx), y(iny), origionalColour(col)
+{
+id = n;
+n += 1;
+}
+
+void Shape::revertColour()
+{
+changeColour(origionalColour);
+}
 
 Text::Text(int inx, int iny, std::string content)
 {
@@ -218,12 +215,15 @@ if(parent != nullptr)
 qp->drawText(x - xoffset, y + yoffset, text.c_str());
 }
 
-Circle::Circle(int inx, int iny, int radius) : Shape(inx, iny), radius(radius)
+Circle::Circle(int inx, int iny, int radius, std::string col) : Shape(inx, iny, col), radius(radius)
 {
 x = inx;
 y = iny;
 id = n;
 n += 1;
+
+colour = col;
+
 
 int a = x - radius;
 int b = y - radius;
@@ -318,10 +318,11 @@ Text* Node::getText()
 return tex;
 }
 
-Node::Node(vec2 pos, std::string label, int radius)
+Node::Node(vec2 pos, std::string label, int radius, std::string colour)
 {
 // again I don't like floats
-cir = new Circle((int)pos.x, (int)pos.y, radius);
+cir = new Circle((int)pos.x, (int)pos.y, radius, colour);
+
 tex = new Text((int)pos.x, (int)pos.y, label, cir);
 
 position = cir->coords();
@@ -348,7 +349,6 @@ void GraphicWindow::add(Node* node)
 {
 nodes.push_back(node);
 }
-
 
 void GraphicWindow::paintEvent(QPaintEvent* event)
 {    
@@ -409,7 +409,7 @@ int py = event->pos().ry();
 // before setting a new active deselect the old and set its colour back
 if(active != nullptr && prevcol != "")
     {
-    active->changeColour(prevcol);
+    active->revertColour();
     active = nullptr;
     }
 
@@ -521,7 +521,7 @@ if(cont == 0)
     if(active != nullptr)
         {        
         // change it's colour back
-        active->changeColour(prevcol);
+        active->revertColour();
 
         // remove the node's shape from active
         active = nullptr;
@@ -543,7 +543,7 @@ if(active != nullptr && active != clicked)
     add(e);
 
     // change the colour of the active shape back
-    active->changeColour(prevcol);
+    active->revertColour();
 
     // make the shape inactive
     active = nullptr;
@@ -566,7 +566,7 @@ else if(active == nullptr)
 else
     {   
     // change colour back
-    clicked->changeColour(prevcol);
+    active->revertColour();
 
     // remove the node's shape from active
     active = nullptr;
@@ -580,21 +580,40 @@ Shape* GraphicWindow::getShape(int index)
 return shapes[index];
 }
 
-int loadnew(GraphicWindow* gwin)
+int loadnew(GraphicWindow* gwin, Table* table)
 {
-Node* number = new Node({50, 50}, std::to_string(numbers[top]), 14);
+static int curRow = 0;
+
+Node* number = new Node({50, 50}, std::to_string(numbers[top]), 14, "light green");
 gwin->add(number);
+table->add({(float)curRow, 0}, std::to_string(numbers[top]));
 
 int count = 0;
+
+// a collection of the factors
+std::stringstream ss;
+
 for (int i : factors[top])
     {
-    Node* n = new Node({(float)(100 + count*50), (float)50}, std::to_string(i), 14);
+    std::string strnum = std::to_string(i);
 
+    Node* n = new Node({(float)(100 + count*50), (float)50}, strnum, 14, "light blue");
+    ss << strnum << ", ";
+    
     gwin->add(n);
 
     count++;
     }
 
+// the stream as a string
+std::string compactStr = ss.str();
+
+// the final string -2 as it gets rid of the extra ", "
+std::string final = compactStr.substr(0, compactStr.length()-2);
+
+table->add({(float)curRow, 1}, final);
+
+curRow++;
 top++;
 
 return 0;
@@ -607,6 +626,7 @@ MainWindow::MainWindow(QWidget* parent, GraphicWindow* graphicWindow)
 menubar = new QMenuBar(this);
 setMenuBar(menubar);
 
+// add the main menu
 fileMen = new QMenu("FILE");
 menubar->addMenu(fileMen);
 
@@ -619,8 +639,17 @@ dockContent = new QWidget(dockWidget);
 // setting the docking widget's content up
 dockWidget->setWidget(dockContent);
 
+// setting up the layout of the widget
+dockinglayout = new QVBoxLayout(dockContent);
+
 // add the widget to the window
 addDockWidget(Qt::RightDockWidgetArea, dockWidget);
+
+table = new Table(dockContent);
+table->resizeColumnsToContents();
+table->resizeRowsToContents();
+//table->setMaximumHeight(table->height());
+
 
 // button setup
 button = new QPushButton("Load new set", dockContent);
@@ -631,18 +660,51 @@ int wid = fontMetrics().horizontalAdvance("  Load new set  ");
 // setting the width and height of the button
 button->setFixedSize(wid, 30);
 
+// setting the dock layout
+dockContent->setLayout(dockinglayout);
+
 // setting the minimum size to be the button's width so that it is always readable
-dockContent->setMinimumWidth(button->width());
+dockContent->setMinimumWidth(table->width());
+
+// adding both widgets to the dock
+dockinglayout->addWidget(button);
+dockinglayout->addWidget(table);
+
+// setting the main widget of the dock
+dockWidget->setWidget(dockContent);
 
 // connecting the button to the window so that it can be used
 connect(button, &QPushButton::clicked, this, pressy);
 };
 
+Table::Table(QWidget* parent)
+    : QTableWidget(parent)
+{
+// setting the rows and the columns
+this->setRowCount(3);
+this->setColumnCount(2);
+}
+
+void Table::add(vec2 tablePos, std::string item)
+{
+QTableWidgetItem* item1 = new QTableWidgetItem(item.c_str());
+
+if(this->rowCount() < tablePos.y) 
+    {
+    this->setRowCount(tablePos.y + 1);
+    this->resizeRowsToContents();
+    }
+
+this->setItem(tablePos.x, tablePos.y, item1);
+
+tableItems.push_back(item1);
+}
+
 void MainWindow::pressy()
 {
 std::cout << "\n\nClicky Clicky";
 
-loadnew(this->gwin);
+loadnew(this->gwin, this->table);
 update();
 }
 

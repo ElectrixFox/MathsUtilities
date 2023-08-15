@@ -87,7 +87,10 @@
         "qaction": "cpp",
         "qvboxlayout": "cpp",
         "bitset": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "qtablewidget": "cpp",
+        "qtablewidgetitem": "cpp",
+        "qmouseevent": "cpp"
     },
     "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
     "C_Cpp.errorSquiggles": "enabled"
