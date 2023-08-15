@@ -62,6 +62,7 @@ class Shape
     DEFAULT,
     LINE,
     CIRCLE,
+    RECTANGLE,
     NODE
     };
 
@@ -77,6 +78,21 @@ class Shape
     vec2 position;
     std::string colour = "red";
     const std::string origionalColour; 
+    };
+
+class SRectangle : public Shape
+    {
+    public:
+    SRectangle(vec2 pos, int wid, int hig, std::string col = "red", std::string tex = "");
+
+    void draw(QPainter* qp) override;
+
+    virtual void move(vec2 pos, int offset = 0) override;
+
+    protected:
+    int width, height;
+
+    int moving = 0;
     };
 
 class Line : public Shape
@@ -130,7 +146,6 @@ class Circle : public Shape
     // overrides because of the different shapes
     virtual void move(vec2 pos, int offset = 0) override;
 
-    int getID() { return id; };
     int getRadius() { return radius; };
 
     protected:

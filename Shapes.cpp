@@ -140,6 +140,47 @@ qp->drawText(position.x - xoffset, position.y + yoffset, text.c_str());
 }
 
 
+// rectangle
+
+SRectangle::SRectangle(vec2 pos, int wid, int hig, std::string col, std::string tex)
+{
+position = pos;
+id = n;
+n += 1;
+
+width = wid;
+height = hig;
+
+colour = col;
+
+bbox = QRect(pos.x, pos.y, wid, hig);
+shapeType = ShapeType::RECTANGLE;
+}
+
+void SRectangle::draw(QPainter* qp)
+{
+QColor col = QColor(colour.c_str());
+qp->setBrush(col);
+
+qp->drawRect(bbox);
+
+// draw text if it is there
+if(text != nullptr)
+    text->draw(qp);
+}
+
+void SRectangle::move(vec2 pos, int offset)
+{
+position = pos;
+
+// if there is text
+if(text != nullptr)
+    {
+    text->setPosition(position);
+    }
+}
+
+
 // circle
 
 Circle::Circle(vec2 pos, int radius, std::string col, std::string tex) : Shape(pos, col, tex), radius(radius)
