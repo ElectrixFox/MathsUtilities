@@ -1,12 +1,13 @@
 #include "Utility.h"
 #include "Factor.h"
 #include "ConsecutiveComposites.h"
-#include "CpGraph.h"
+#include "GraphicWindow.h"
 
 std::vector<int> primes;
 
 int main(int argc, char const *argv[])
 {
+primes = loadPrimes("primes.txt");
 
 CpMain();
 

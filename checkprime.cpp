@@ -29,6 +29,8 @@ int isPrime(int p)
 // gets the result if it is found
 int res = findPrime(p);
 
-// will return 0 if 0 or 1 if not 0
-return res % 2;
+// equal to acount for the first prime in the list
+if(res >= 0) return 1;
+
+return 0;
 }
