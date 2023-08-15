@@ -179,6 +179,12 @@ text = content;
 parent = par;
 }
 
+void Text::move(vec2 pos)
+{
+x = pos.x;
+y = pos.y;
+}
+
 void Text::draw(QPainter* qp)
 {
 // add options in the future for colour, size, font, etc...
@@ -258,6 +264,26 @@ target = intarget;
 width = wid;
 };
 
+Edge::Edge(Node* insource, Node* intarget, int wid)
+{
+nodesource = insource;
+nodetarget = intarget;
+
+source = insource->getShape();
+target = intarget->getShape();
+
+width = wid;
+}
+
+void Edge::createText(std::string content)
+{
+// get the midpoint
+vec2 pos = (source->coords()-target->coords())/2;
+
+// create the text at the midpoint
+tex = new Text(pos.x, pos.y, content);
+}
+
 void Edge::draw(QPainter* qp)
 {
 // assuming they're circles
@@ -268,7 +294,6 @@ Circle* c2 = (Circle*)target;
 float x1 = c1->coords().x;
 float y1 = c1->coords().y;
 float r1 = c1->getRadius();
-
 
 float x2 = c2->coords().x;
 float y2 = c2->coords().y;
@@ -306,6 +331,19 @@ qp->setPen(pen);
 
 // drawing the line
 qp->drawLine(pos1.x, pos1.y, pos2.x, pos2.y);
+
+// if there is text
+if(tex != nullptr)
+    {
+    // get midpoint of the line
+    vec2 midp = (source->coords()-target->coords())/2;
+
+    // move to the midp
+    tex->move(midp);
+
+    // draw the text
+    tex->draw(qp);
+    }
 };
 
 Shape* Node::getShape()
@@ -328,6 +366,28 @@ tex = new Text((int)pos.x, (int)pos.y, label, cir);
 position = cir->coords();
 
 };
+
+std::string Node::preemptPower(std::string factor)
+{
+// for each number in nums
+for(Number n : nums)
+    {
+    // if the base equals the factor
+    if(n.base == atoi(factor.c_str()))
+        {
+        // return the exponent
+        return std::to_string(n.exponent);
+        }
+    }
+
+// if it's not a factor return nullptr to show
+return nullptr;
+}
+
+void Node::addFactor(int factor, int power)
+{
+nums.push_back({factor, power});
+}
 
 void Node::draw(QPainter* qp)
 {
@@ -586,9 +646,18 @@ static int curRow = 0;
 
 Node* number = new Node({50, 50}, std::to_string(numbers[top]), 14, "light green");
 gwin->add(number);
+
+// adding the number to the table
 table->add({(float)curRow, 0}, std::to_string(numbers[top]));
 
 int count = 0;
+
+for (int i = 0; i < factors[top].size(); i++)
+    {
+    // adding the factors to the vector
+    number->addFactor(factors[top][i], exponents[top][i]);
+    }
+
 
 // a collection of the factors
 std::stringstream ss;
@@ -648,8 +717,6 @@ addDockWidget(Qt::RightDockWidgetArea, dockWidget);
 table = new Table(dockContent);
 table->resizeColumnsToContents();
 table->resizeRowsToContents();
-//table->setMaximumHeight(table->height());
-
 
 // button setup
 button = new QPushButton("Load new set", dockContent);
@@ -687,23 +754,33 @@ this->setColumnCount(2);
 
 void Table::add(vec2 tablePos, std::string item)
 {
-QTableWidgetItem* item1 = new QTableWidgetItem(item.c_str());
+QTableWidgetItem* element = new QTableWidgetItem(item.c_str());
 
-if(this->rowCount() < tablePos.y) 
+// row count
+int rc = rowCount();
+
+// if the row count is less than or equal to the position trying to write to
+if(rc <= tablePos.x) 
     {
-    this->setRowCount(tablePos.y + 1);
-    this->resizeRowsToContents();
+    // add a new row
+    setRowCount(rc+1);
     }
 
-this->setItem(tablePos.x, tablePos.y, item1);
+// setting the new item
+setItem(tablePos.x, tablePos.y, element);
 
-tableItems.push_back(item1);
+// updating the table
+update();
+
+// adding the element to the list
+tableItems.push_back(element);
 }
 
 void MainWindow::pressy()
 {
 std::cout << "\n\nClicky Clicky";
 
+// loads the new nodes
 loadnew(this->gwin, this->table);
 update();
 }

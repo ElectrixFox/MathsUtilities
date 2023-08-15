@@ -1,22 +1,23 @@
 #include "Utility.h"
-#include <QtWidgets/QApplication.h>
-#include <QtWidgets/QPushbutton.h>
-#include <QtWidgets/QMainWindow>
-#include <QtGui/QMouseEvent>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/qbuttongroup.h>
-#include <QtGui/QPainter>
-#include <QtCore/QElapsedTimer>
-#include <QtWidgets/QMenuBar>
-#include <QtWidgets/QTableWidget>
-#include <QtWidgets/QTableWidgetItem>
-#include <QtWidgets/QMenu>
-#include <QtWidgets/QHeaderView>
-#include <QtWidgets/QAction>
-#include <QtWidgets/QDockWidget>
-#include <QtWidgets/QVBoxLayout>
+#include "qt_pch.h"
+#include "Factor.h"
 
-struct vec2 { float x, y; };
+struct vec2 
+    { 
+    float x, y; 
+
+    // operation for vector subtraction
+    vec2 operator-(const vec2& other) const
+        {
+        return {(x - other.x), (y - other.y)};
+        };
+    
+    // operation for dividing a vector by a constant
+    vec2 operator/(const int divisor) const
+        {
+        return {(x/divisor), (y/divisor)};
+        };
+    };
 
 void loadData(const std::string& filePath);
 
@@ -60,9 +61,12 @@ class Text
     // drawing
     void draw(QPainter* qp);
 
+    void move(vec2 pos);
+
+    std::string text;
+    
     private:
     float x, y;
-    std::string text;
     Shape* parent; 
     };
 
@@ -71,6 +75,7 @@ class Edge
     public:
     // source and target shapes
     Edge(Shape* insource, Shape* intarget, int wid = 1);
+    Edge(Node* insource, Node* intarget, int wid = 1);
 
     // drawing
     void draw(QPainter* qp);
@@ -79,8 +84,14 @@ class Edge
     vec2 getTargetCoords(int print = 0) { return target->coords(print); };
     int getWidth() { return width; };
 
+    void createText(std::string content);
+
     private:
     int width = 1;
+    Text* tex = nullptr;
+
+    Node* nodesource;
+    Node* nodetarget;
 
     Shape* source;
     Shape* target;
@@ -116,7 +127,13 @@ class Node
     Shape* getShape();
     Text* getText();
 
+    // tells the edge what power it should be
+    std::string preemptPower(std::string factor);
+
+    void addFactor(int factor, int power);
+
     private:
+    std::vector<Number> nums;
     vec2 position;
     Text* tex;
     Circle* cir;
