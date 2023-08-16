@@ -46,10 +46,16 @@ class GraphicWindow : public QWidget
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
-    void mouseDoubleClickEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;    
+    void contextMenuEvent(QContextMenuEvent* event) override;
 
     vec2 getPointerPos(QMouseEvent* event);
+    vec2 getPointerPos(QContextMenuEvent* event);
 
+    // function to create a node at the pointer
+    void createNode();
+
+    // function to handle the majority of the main box select functionalities
     void boxSelect();
 
     // select a group of items

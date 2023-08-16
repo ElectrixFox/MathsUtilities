@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <sstream>
 #include <regex>
+#include <functional>
 
 class vec2
     {

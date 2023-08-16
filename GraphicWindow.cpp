@@ -274,10 +274,58 @@ if(active != clicked)
     }
 };
 
+void GraphicWindow::contextMenuEvent(QContextMenuEvent* event)
+{
+QMenu menu(this);
+
+getPointerPos(event);
+
+QAction *action1 = menu.addAction("New Node");
+QAction *action2 = menu.addAction("Action 2");
+
+
+//QAction *selectedAction = menu.exec(event->globalPos());
+
+connect(action1, &QAction::triggered, this, &GraphicWindow::createNode);
+ 
+menu.exec(mapToGlobal({(int)pPos.x, (int)pPos.y}));
+
+/* if (selectedAction == action1) 
+    {
+    createNode();
+    }
+else if (selectedAction == action2) 
+    {
+
+    } */
+
+}
+
+void GraphicWindow::createNode()
+{
+std::cout << "\nCreating node";
+
+Node* n = new Node(pPos, "", 5, "red");
+
+shapes.push_back(n);
+
+update();
+}
+
 vec2 GraphicWindow::getPointerPos(QMouseEvent* event)
 {
 int px = event->pos().rx();
 int py = event->pos().ry();
+
+pPos = {(float)px, (float)py};
+
+return pPos;
+}
+
+vec2 GraphicWindow::getPointerPos(QContextMenuEvent* event)
+{
+int px = event->pos().x();
+int py = event->pos().y();
 
 pPos = {(float)px, (float)py};
 
@@ -458,15 +506,14 @@ table->resizeColumnsToContents();
 table->resizeRowsToContents();
 
 // button setup
-QPushButton* loadNew = new QPushButton("Load new set", dockContent);
-
+QPushButton* loadNewButton = new QPushButton("Load new set", dockContent);
 QPushButton* resetButton = new QPushButton("Reset", dockContent);
 
 // the width of the button's text
 int wid = fontMetrics().horizontalAdvance("  Load new set  ");
 
 // setting the width and height of the button
-loadNew->setFixedSize(wid, 30);
+loadNewButton->setFixedSize(wid, 30);
 resetButton->setFixedSize(fontMetrics().horizontalAdvance("  Reset  "), 30);
 
 
@@ -485,11 +532,11 @@ widgets.push_back(fileMen);
 widgets.push_back(dockWidget);
 widgets.push_back(dockContent);
 widgets.push_back(table);
-widgets.push_back(loadNew);
+widgets.push_back(loadNewButton);
 widgets.push_back(resetButton);
 
 // adding both widgets to the dock
-buttonlayout->addWidget(loadNew);
+buttonlayout->addWidget(loadNewButton);
 buttonlayout->addWidget(resetButton);
 tablelayout->addWidget(uniqueFac);
 tablelayout->addWidget(onlyFac);
@@ -507,7 +554,7 @@ dockContent->setLayout(dockinglayout);
 dockWidget->setWidget(dockContent);
 
 // connecting the button to the window so that it can be used
-connect(loadNew, &QPushButton::clicked, this, pressy);
+connect(loadNewButton, &QPushButton::clicked, this, pressy);
 connect(resetButton, &QPushButton::clicked, this, remAll);
 connect(uniqueFac, &QCheckBox::clicked, this, uniqueFactors);
 connect(onlyFac, &QCheckBox::clicked, this, onlyFactors);
