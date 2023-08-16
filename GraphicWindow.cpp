@@ -305,7 +305,7 @@ vec2 change = pPos - active->coords();
 // first move active
 active->move(pPos);
 
-for(int i = 1; i < selected.size(); i++)
+for(int i = 0; i < selected.size(); i++)
     {
     // if selected at i is the active then skip it's moving
     if(selected[i] == active) continue;
