@@ -13,22 +13,32 @@ class GraphicWindow : public QWidget
     public: 
     GraphicWindow(QWidget* parent = nullptr) : QWidget(parent) { setMouseTracking(true); };
 
+    // add a shape to the window's collection
     void add(Shape* shape);
 
+    // get a shape at the index
     Shape* getShape(int index);
 
+    // clear all shapes
     void remAll();
 
+    // toggle whether the factors can connect
     int toggleConnect();
 
     protected:
+    // vector position of the pointer
+    vec2 pPos;
+
     std::vector<Shape*> shapes;
 
-    Shape* active = nullptr;
+    std::vector<Shape*> selected = {nullptr};
+    Shape* active = selected[0];
+    SRectangle* boxSel = nullptr;
     std::string prevcol = "";
+
+    // eventually change these into bit flags
     int factorConnect = 0;
-    int pressed = 0;
-    int selected = 0;
+    int pressedShape = 0;
     int boxSelecting = 0;
 
     void paintEvent(QPaintEvent* event) override;
@@ -38,11 +48,30 @@ class GraphicWindow : public QWidget
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseDoubleClickEvent(QMouseEvent* event) override;
 
+    vec2 getPointerPos(QMouseEvent* event);
+
+    void boxSelect();
+
+    // select a group of items
+    void groupSelect();
+
+    // deselect all 
+    void groupDeselect();
+
+    // select a single shape
     void Select(Shape* s);
+
+    // select a shape via the shape index
+    void Select(int index);
+    
+    // deselect the active shape
     void Deselect();
 
+    // is the pointer colliding with anything, if so return the index of the shape
     int Colliding(vec2 mPos);
 
+    // shape dragging function
+    void moveShape(QMouseEvent* event);
     };
 
 class Table : public QTableWidget

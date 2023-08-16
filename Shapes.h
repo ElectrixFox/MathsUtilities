@@ -86,11 +86,17 @@ class SRectangle : public Shape
     SRectangle(vec2 pos, int wid, int hig, std::string col = "red", std::string tex = "");
 
     void draw(QPainter* qp) override;
+    void setScale(vec2 scale);
+
+    vec2 getScale(int print = 0);
 
     virtual void move(vec2 pos, int offset = 0) override;
 
+    float updateOpacity(int op) { opacity = op; return opacity; };
+
     protected:
     int width, height;
+    float opacity = 100.0f;
 
     int moving = 0;
     };

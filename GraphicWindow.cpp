@@ -10,32 +10,42 @@ void GraphicWindow::paintEvent(QPaintEvent* event)
 QPainter p(this);
 p.setRenderHint(QPainter::Antialiasing);
 
-for (Shape* s : shapes)
+// draw the box select if selecting
+if(boxSelecting == 1)
+    {
+    boxSel->draw(&p);
+    }
+
+// drawing the shapes backward so the oldest stuff gets drawn on the top
+for (int i = shapes.size()-1; i > -1; i--)
+    {
+    shapes[i]->draw(&p);
+    }
+
+// draws forward
+/* for (Shape* s : shapes)
     {
     s->draw(&p);
-    }
+    } */
 };
 
 void GraphicWindow::mousePressEvent(QMouseEvent* event)
 {
-int px = event->pos().rx();
-int py = event->pos().ry();
+// pointer pos vec2 for functions
+pPos = getPointerPos(event);
 
-// if a shift click is happening
-if(event->button() == Qt::LeftButton && event->modifiers() == Qt::ShiftModifier)
-    {
-    // deselects anything selected
-    Deselect();
+// the index of the shape clicked on
+int colShape = Colliding(pPos);
 
-    // if there isn't anything colliding
-    if(Colliding({px, py}) == -1)
-        {
-        SRectangle* re = new SRectangle({event.x, event.y}, 0, 0);
+// should continue box selecting
+int contBox = 0;
 
-        // start the box selecting
-        boxSelecting = 1;
-        }
-    }
+// if the shape clicked is in selected set the box selection to continue
+if(selected.size() > 1)
+    for (Shape* s : selected)
+        if(s == shapes[colShape])
+            contBox = 1;
+    
 
 if(event->button() == Qt::RightButton)
     {
@@ -48,7 +58,7 @@ if(event->button() == Qt::RightButton)
 
         // 0 is the enum ID for shape (IF CHANGED HERE WILL BE SOURCE OF ERROR)
         vec2 s = l->getSource(), t = l->getTarget();
-        float dst = pointLineDist((vec2){(float)px, (float)py}, s, t);
+        float dst = pointLineDist(pPos, s, t);
 
         // if it is within the bounds it is being clicked
         if(dst <= l->getWidth())
@@ -61,76 +71,72 @@ if(event->button() == Qt::RightButton)
     
     }
 
+// if not clicking on anything deselect all and say we haven't pressed a shape
+if(colShape == -1) { pressedShape = 0; Deselect(); groupDeselect(); }
+else pressedShape = 1;
 
-// if it's a left click say it's pressed so that it can be used elsewhere
-if(event->button() == Qt::LeftButton)
-    pressed = 1;
-};
-
-void GraphicWindow::mouseMoveEvent(QMouseEvent* event)
-{
-// start box selecting
+// if the box selection shouldn't continue deselect all
+if(contBox == 0) groupDeselect();
 
 
+// early return if there is no left click because the rest is all for left click
+if(event->button() != Qt::LeftButton) return;
 
-// early return if nothing is being pressed at the same time
-if(pressed != 1)
-    return;
-
-int px = event->pos().rx();
-int py = event->pos().ry();
-
-// before setting a new active deselect the old and set its colour back
-if(active != nullptr && prevcol != "")
+// if a shift click is happening
+if(event->modifiers() == Qt::ShiftModifier)
     {
-    active->revertColour();
-    active = nullptr;
-    }
+    // deselects anything selected
+    Deselect();
 
-// for each shape in shapes
-for(Shape* s : shapes)
-    {
-    // check the click is in the shape
-    if(s->bbox.contains(px, py))
+    // if there isn't anything colliding
+    if(colShape == -1)
         {
-        
-        // if it is then set the shape as active and moving
-        s->moving = 1;
-        active = s;
-        }
-    }
+        // create a new selection box
+        boxSel = new SRectangle(pPos, 0, 0);
+        boxSel->changeColour("light grey");
+        boxSel->updateOpacity(50);
 
+        // start the box selecting
+        boxSelecting = 1;
 
-// if there is something active
-if(active != nullptr)
-    {
-    // and the active thing is moving
-    if(active->moving == 1)
-        {
-        // get the position of the mouse
-        int x = event->pos().rx();
-        int y = event->pos().ry();
-        
-        // move the active item to the mouse's position
-        active->move({(float)x, (float)y});
-
-        // redraw
         update();
         }
+    
+    return;
     }
+
+// if it's a left click and it is on something
+if(pressedShape != 0) Select(colShape);
+};
+
+// FIX BOX SELECTING CRASHING WHEN STARTING SELECT ON NODE
+void GraphicWindow::mouseMoveEvent(QMouseEvent* event)
+{
+// get the pointer position
+pPos = getPointerPos(event);
+
+// return here if left button isn't being pressed as we can put all things requiring left click below here to not have a massive if
+if(event->buttons() != Qt::LeftButton) return;
+
+// start box selecting if we are able to box select and shift is being pressed
+if(event->modifiers() == Qt::ShiftModifier && boxSelecting == 1) boxSelect();
+ 
+// if the mouse is being pressed move the shape if the shapes start lagging behind it's most likely because of slow computation
+// it's here at the end so no checking has to be done
+if(pressedShape) moveShape(event);
+
 };
 
 void GraphicWindow::mouseReleaseEvent(QMouseEvent* event)
 {
 // getting the position of the release
-int px = event->pos().rx();
-int py = event->pos().ry();
+pPos = getPointerPos(event);
 
 // checking if there is an active object
 if(active != nullptr)
     {
     // checking the active object is where the mouse was released and that something is actually moving
-    if(active->bbox.contains(px, py) && active->moving == 1)
+    if(active->bbox.contains(pPos.x, pPos.y) && active->moving == 1)
         {            
         // set the shape as inactive and stop it moving
         active->moving = 0;
@@ -138,58 +144,80 @@ if(active != nullptr)
         }
     }
 
-pressed = 0;
+// release the select box
+if(boxSelecting == 1)
+    {
+    // select all shapes in the box
+    groupSelect();
+
+    // deselect the box
+    boxSelecting = 0;
+    delete boxSel;
+    boxSel = nullptr;
+    update();
+    }
+
+// there won't be a pressed shape if the mouse has been released
+pressedShape = 0;
 };
 
 void GraphicWindow::mouseDoubleClickEvent(QMouseEvent* event) 
 {
+// getting mouse pos
+getPointerPos(event);
+
+// flag for not adding a line
+int nadd = 0;
+
+// for the old clicked shape
+static Shape* clicked = nullptr;
+
 // change if right click is needed
 if(event->button() != Qt::LeftButton) return;
 
-// don't add - flag
-int nadd = 0;
+if(active == nullptr) return;
 
-// getting the position of the click
-int px = event->pos().rx();
-int py = event->pos().ry();
 
-// flag to show if the box contains the pointer
-int cont = 0;
+if(clicked != nullptr)
+    std::cout << "\nClicked: " << clicked->getID() << "\tActive: " << active->getID();
+else
+    std::cout << "\nClicked: " << clicked << "\tActive: " << active->getID();
 
-// clicked shape
-Shape* clicked = nullptr;
-
-// going through all of the node's to check if they are valid options
-for (Shape* s : shapes)
+// if double clicked on the same shape twice
+if(clicked == active)
     {
-    // if the click is on a box
-    if(s->bbox.contains(px, py))
-        {
-        clicked = s;
-        cont = 1;
-        }
+    // deselect the active shape
+    Deselect();
+
+    // clear the clicked shape
+    clicked = nullptr;
+
+    // start again
+    return;
     }
-
-// if the click wasn't in a node deselect and return
-if(cont == 0)
+// if the double click was when clicked is null
+if(clicked == nullptr)
     {
-    if(active != nullptr)
-        {        
-        // change it's colour back
-        active->revertColour();
+    // set it to two so that we don't select a different shape on the next click before the double
+    pressedShape = 2;
 
-        // remove the node's shape from active
-        active = nullptr;
+    // set clicked equal to active 
+    clicked = active;
 
-        // redraw
-        update();
-        }
+    // get the current colour to store
+    prevcol = clicked->getColour();
 
+    // change the colour to grey to indicate it has been selected
+    clicked->changeColour("grey");
+
+    update();
+
+    // return until new call
     return;
     }
 
 // if there is already an active node and it isn't the clicked one
-if(active != nullptr && active != clicked)
+if(active != clicked)
     {
     // create a new edge between the active and the newly selected
     Line* l = new Line(active, clicked, 2);
@@ -221,8 +249,10 @@ if(active != nullptr && active != clicked)
         else if (primeTest2 == 1)
             power = ((Node*)active)->preemptPower(lab2);
         
-        if(power == "") nadd = 41;
+        // if there is nothing there don't add the line
+        if(power == "") nadd = 1;
 
+        // if the power is 1 then don't write the text (aka. write as empty: "")
         if(power == "1") power = "";
 
         // set the text
@@ -232,46 +262,109 @@ if(active != nullptr && active != clicked)
     // add the new edge
     if(nadd == 0 || factorConnect == 1)
         add(l);
-
-
-    // change the colour of the active shape back
-    active->revertColour();
-
-    // make the shape inactive
-    active = nullptr;
+    
+    // deselect after creating the line
+    Deselect();
+    
+    // reset clicked
+    clicked = nullptr;
 
     // redraw
     update();
     }
-// if there isn't an active node select the clicked one
-else if(active == nullptr)
+};
+
+vec2 GraphicWindow::getPointerPos(QMouseEvent* event)
+{
+int px = event->pos().rx();
+int py = event->pos().ry();
+
+pPos = {(float)px, (float)py};
+
+return pPos;
+}
+
+void GraphicWindow::moveShape(QMouseEvent* event)
+{
+// for each shape in shapes
+for(Shape* s : shapes)
     {
-    // get the current colour to store
-    prevcol = clicked->getColour();
-
-    // change the colour to grey to indicate it has been selected
-    clicked->changeColour("grey");
-
-    // set the node's shape as the active shape
-    active = clicked;
+    // check the click is in the shape
+    if(s->bbox.contains(pPos.x, pPos.y))
+        {
+        // if it is then set the shape as active and moving
+        s->moving = 1;
+        s->revertColour();
+        break;
+        }
     }
-else
-    {   
-    // change colour back
-    active->revertColour();
 
-    // remove the node's shape from active
-    active = nullptr;
+// the change in active's position is the same change that needs to be made to each shape's position
+vec2 change = pPos - active->coords();
+
+// first move active
+active->move(pPos);
+
+for(int i = 1; i < selected.size(); i++)
+    {
+    // if selected at i is the active then skip it's moving
+    if(selected[i] == active) continue;
+
+    // shape's current position
+    vec2 cPos = selected[i]->coords();
+
+    // move each selected shape by the change
+    selected[i]->move(cPos + change);
     }
 
 update();
 };
+
+void GraphicWindow::groupSelect()
+{
+// for each shape in shapes
+for (Shape* s : shapes)
+    {
+    // coords of the shape
+    vec2 co = s->coords();
+
+    // if they are inside of the selection box
+    if(boxSel->bbox.contains(co.x, co.y))
+        {
+        // add them to the selected vector
+        selected.push_back(s);
+        }
+    }
+}
+
+void GraphicWindow::groupDeselect()
+{
+selected.clear();
+}
+
+void GraphicWindow::boxSelect()
+{
+// rect pos
+vec2 rPos = boxSel->coords(); 
+
+boxSel->getScale(1);
+
+pPos.out();
+
+boxSel->setScale(pPos-rPos);
+update();
+}
 
 void GraphicWindow::Select(Shape* s)
 {
 Deselect();
 
 active = s;
+}
+
+void GraphicWindow::Select(int index)
+{
+Select(shapes[index]);
 }
 
 void GraphicWindow::Deselect()
@@ -496,8 +589,6 @@ table->add({(float)curRow, 0}, std::to_string(detail.number));
 
 for (Number n : detail.factors)
     {
-    std::cout << '\n' << n.base << "^" << n.exponent;
-
     // adding the factors to the vector
     number->addFactor(n);
     }
@@ -549,8 +640,6 @@ return 0;
 
 void MainWindow::pressy()
 {
-std::cout << "\n\nClicky Clicky";
-
 // loads the new nodes
 loadnew(this->gwin, &dc, this->table);
 update();

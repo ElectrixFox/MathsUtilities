@@ -152,6 +152,7 @@ width = wid;
 height = hig;
 
 colour = col;
+opacity = 100;
 
 bbox = QRect(pos.x, pos.y, wid, hig);
 shapeType = ShapeType::RECTANGLE;
@@ -162,11 +163,33 @@ void SRectangle::draw(QPainter* qp)
 QColor col = QColor(colour.c_str());
 qp->setBrush(col);
 
+// set the opacity to the opacity
+qp->setOpacity((float)(opacity/100));
+
+bbox.setWidth(width);
+bbox.setHeight(height);
+
 qp->drawRect(bbox);
 
 // draw text if it is there
 if(text != nullptr)
     text->draw(qp);
+}
+
+void SRectangle::setScale(vec2 scale)
+{
+width = (int)scale.x;
+height = (int)scale.y;
+}
+
+vec2 SRectangle::getScale(int print)
+{
+vec2 sc = {(float)width, (float)height};
+
+if(print == 1)
+    sc.out();
+
+return sc;
 }
 
 void SRectangle::move(vec2 pos, int offset)
