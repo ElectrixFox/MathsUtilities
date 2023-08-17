@@ -291,7 +291,7 @@ QAction *action2 = menu.addAction("Action 2");
 
 connect(nNode, &QAction::triggered, this, &GraphicWindow::createNode);
 
-menu.exec(mapToGlobal({(int)pPos.x, (int)pPos.y}));
+menu.exec(mapToGlobal(event->pos()));
 
 //QAction *selectedAction = menu.exec(event->globalPos());
 
@@ -497,8 +497,6 @@ QHBoxLayout* buttonlayout = new QHBoxLayout();
 QVBoxLayout* tablelayout = new QVBoxLayout();
 QHBoxLayout* nodeInfoLayout = new QHBoxLayout();
 
-buttonlayout->setMargin(0);
-tablelayout->setMargin(0);
 tablelayout->setSpacing(1);
 
 // add the widget to the window
@@ -528,9 +526,6 @@ resetButton->setFixedSize(fontMetrics().horizontalAdvance("  Reset  "), 30);
 
 
 QLabel* nodeIDLabel = new QLabel("Node ID: ", dockContent);
-
-//tablelayout->setSizeConstraint(QLayout::SizeConstraint::SetMinimumSize);
-//tablelayout->setContentsMargins(10, 10, 10, 10);
 
 // setting the minimum size to be the button's width so that it is always readable
 dockContent->setMinimumWidth(table->width());
@@ -736,7 +731,7 @@ int h = 0;
 QApplication app(h, {});
 MainWindow* window = new MainWindow();
 
-app.setActiveWindow(window);
+window->activateWindow();
 
 GraphicWindow gwin;
 window->gwin = &gwin;
