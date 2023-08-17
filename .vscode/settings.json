@@ -91,12 +91,7 @@
         "qtablewidget": "cpp",
         "qtablewidgetitem": "cpp",
         "qmouseevent": "cpp",
-        "qtwidgets": "cpp",
-        "qtgui": "cpp",
-        "qelapsedtimer": "cpp",
-        "qtcore": "cpp",
-        "qguiapplication": "cpp",
-        "qlayout": "cpp"
+        "qtwidgets": "cpp"
     },
     "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
     "C_Cpp.errorSquiggles": "enabled"
