@@ -40,6 +40,7 @@ class GraphicWindow : public QWidget
     int factorConnect = 0;
     int pressedShape = 0;
     int boxSelecting = 0;
+    int lineDeleted = 0;
 
     void paintEvent(QPaintEvent* event) override;
 

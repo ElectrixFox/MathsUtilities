@@ -34,6 +34,9 @@ void GraphicWindow::mousePressEvent(QMouseEvent* event)
 // pointer pos vec2 for functions
 pPos = getPointerPos(event);
 
+// the extra range for the line clicking
+int padding = 1;
+
 // the index of the shape clicked on
 int colShape = Colliding(pPos);
 
@@ -46,7 +49,7 @@ if(selected.size() > 1)
         if(s == shapes[colShape])
             contBox = 1;
     
-
+int tmpLDel = lineDeleted;
 if(event->button() == Qt::RightButton)
     {
     for(int i = 0; i < shapes.size(); i++)
@@ -61,15 +64,26 @@ if(event->button() == Qt::RightButton)
         float dst = pointLineDist(pPos, s, t);
 
         // if it is within the bounds it is being clicked
-        if(dst <= l->getWidth())
+        if(dst <= l->getWidth() + padding)
             {
+            // remove the line
             shapes.erase(shapes.begin() + i);
+
+            // the shape has been deleted and a shape has been collided with
+            lineDeleted = 1;
+            colShape = 1;
             update();
             }
-        
         }
-    
     }
+
+// if the previous state is equal to the new state reset the new state
+if(lineDeleted == tmpLDel)
+    {
+    lineDeleted = 0;
+    }
+
+std::cout << "\nLine Deleted: " << lineDeleted;
 
 // if not clicking on anything deselect all and say we haven't pressed a shape
 if(colShape == -1) { pressedShape = 0; Deselect(); groupDeselect(); }
@@ -83,7 +97,7 @@ if(contBox == 0) groupDeselect();
 if(event->button() != Qt::LeftButton) return;
 
 // if a shift click is happening
-if(event->modifiers() == Qt::ShiftModifier)
+if(event->modifiers() == Qt::ShiftModifier && colShape == -1)
     {
     // deselects anything selected
     Deselect();
@@ -109,7 +123,6 @@ if(event->modifiers() == Qt::ShiftModifier)
 if(pressedShape != 0) Select(colShape);
 };
 
-// FIX BOX SELECTING CRASHING WHEN STARTING SELECT ON NODE
 void GraphicWindow::mouseMoveEvent(QMouseEvent* event)
 {
 // get the pointer position
@@ -177,12 +190,6 @@ if(event->button() != Qt::LeftButton) return;
 
 if(active == nullptr) return;
 
-
-if(clicked != nullptr)
-    std::cout << "\nClicked: " << clicked->getID() << "\tActive: " << active->getID();
-else
-    std::cout << "\nClicked: " << clicked << "\tActive: " << active->getID();
-
 // if double clicked on the same shape twice
 if(clicked == active)
     {
@@ -216,66 +223,67 @@ if(clicked == nullptr)
     return;
     }
 
-// if there is already an active node and it isn't the clicked one
-if(active != clicked)
+
+// create a new edge between the active and the newly selected
+Line* l = new Line(active, clicked, 2);
+
+// checing it's a node
+if(active->shapeType == Shape::ShapeType::NODE)
     {
-    // create a new edge between the active and the newly selected
-    Line* l = new Line(active, clicked, 2);
+    // power string to add (equal to "" in case neither are prime or both are prime)
+    std::string power;
 
-    // checing it's a node
-    if(active->shapeType == Shape::ShapeType::NODE)
-        {
-        // power string to add (equal to "" in case neither are prime or both are prime)
-        std::string power;
+    // get both labels
+    std::string lab1 = ((Node*)active)->getText();
+    std::string lab2 = ((Node*)clicked)->getText();
 
-        // get both labels
-        std::string lab1 = ((Node*)active)->getText();
-        std::string lab2 = ((Node*)clicked)->getText();
+    // convert them to ints
+    int ilab1 = atoi(lab1.c_str());
+    int ilab2 = atoi(lab2.c_str());
 
-        // convert them to ints
-        int ilab1 = atoi(lab1.c_str());
-        int ilab2 = atoi(lab2.c_str());
+    // check see if it is a factor or a number
+    int primeTest1 = isPrime(ilab1);
+    int primeTest2 = isPrime(ilab2);
 
-        // check see if it is a factor or a number
-        int primeTest1 = isPrime(ilab1);
-        int primeTest2 = isPrime(ilab2);
+    if((primeTest1 == 1 && primeTest2 == 1) || (primeTest1 == 0 && primeTest2 == 0)) nadd = 1;
 
-        if((primeTest1 == 1 && primeTest2 == 1) || (primeTest1 == 0 && primeTest2 == 0)) nadd = 1;
-
-        // if the first is prime find the power it should be using
-        if(primeTest1 == 1)
-            power = ((Node*)clicked)->preemptPower(lab1);
-        // if the second is prime find the power again
-        else if (primeTest2 == 1)
-            power = ((Node*)active)->preemptPower(lab2);
-        
-        // if there is nothing there don't add the line
-        if(power == "") nadd = 1;
-
-        // if the power is 1 then don't write the text (aka. write as empty: "")
-        if(power == "1") power = "";
-
-        // set the text
-        l->setText(power);
-        }
-
-    // add the new edge
-    if(nadd == 0 || factorConnect == 1)
-        add(l);
+    // if the first is prime find the power it should be using
+    if(primeTest1 == 1)
+        power = ((Node*)clicked)->preemptPower(lab1);
+    // if the second is prime find the power again
+    else if (primeTest2 == 1)
+        power = ((Node*)active)->preemptPower(lab2);
     
-    // deselect after creating the line
-    Deselect();
-    
-    // reset clicked
-    clicked = nullptr;
+    // if there is nothing there don't add the line
+    if(power == "") nadd = 1;
 
-    // redraw
-    update();
+    // if the power is 1 then don't write the text (aka. write as empty: "")
+    if(power == "1") power = "";
+
+    // set the text
+    l->setText(power);
     }
+
+// add the new edge
+if(nadd == 0 || factorConnect == 1)
+    add(l);
+
+// deselect after creating the line
+Deselect();
+
+// reset clicked
+clicked = nullptr;
+
+// redraw
+update();
+
 };
 
 void GraphicWindow::contextMenuEvent(QContextMenuEvent* event)
 {
+if(Colliding(pPos) != -1) return;
+if(lineDeleted == 1) return;
+
 QMenu menu(this);
 
 getPointerPos(event);
@@ -395,7 +403,7 @@ void GraphicWindow::boxSelect()
 // rect pos
 vec2 rPos = boxSel->coords(); 
 
-boxSel->getScale(1);
+boxSel->getScale();
 
 pPos.out();
 
@@ -622,6 +630,7 @@ void Table::Clear()
 clearContents();
 }
 
+// LOOK AT THIS IT'S BUGGING SOMETIMES WITH READING BACK FACTORS (LOOK AT 30)
 int loadnew(GraphicWindow* gwin, DetailContainer* dc, Table* table)
 {
 int curRow = dc->getTopV();
