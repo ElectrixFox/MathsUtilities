@@ -83,8 +83,6 @@ if(lineDeleted == tmpLDel)
     lineDeleted = 0;
     }
 
-std::cout << "\nLine Deleted: " << lineDeleted;
-
 // if not clicking on anything deselect all and say we haven't pressed a shape
 if(colShape == -1) { pressedShape = 0; Deselect(); groupDeselect(); }
 else pressedShape = 1;
@@ -288,15 +286,14 @@ QMenu menu(this);
 
 getPointerPos(event);
 
-QAction *action1 = menu.addAction("New Node");
+QAction *nNode = menu.addAction("New Node");
 QAction *action2 = menu.addAction("Action 2");
 
+connect(nNode, &QAction::triggered, this, &GraphicWindow::createNode);
+
+menu.exec(mapToGlobal({(int)pPos.x, (int)pPos.y}));
 
 //QAction *selectedAction = menu.exec(event->globalPos());
-
-connect(action1, &QAction::triggered, this, &GraphicWindow::createNode);
- 
-menu.exec(mapToGlobal({(int)pPos.x, (int)pPos.y}));
 
 /* if (selectedAction == action1) 
     {
@@ -498,14 +495,19 @@ dockWidget->setWidget(dockContent);
 dockinglayout = new QVBoxLayout(dockContent);
 QHBoxLayout* buttonlayout = new QHBoxLayout();
 QVBoxLayout* tablelayout = new QVBoxLayout();
+QHBoxLayout* nodeInfoLayout = new QHBoxLayout();
+
+buttonlayout->setMargin(0);
+tablelayout->setMargin(0);
+tablelayout->setSpacing(1);
 
 // add the widget to the window
 addDockWidget(Qt::RightDockWidgetArea, dockWidget);
 
 // adding the unique factor checkbox
 QCheckBox* uniqueFac = new QCheckBox("Unique Factors", dockContent);
-
 QCheckBox* onlyFac = new QCheckBox("Only Factors", dockContent);
+
 onlyFac->setChecked(1);
 
 table = new Table(dockContent);
@@ -525,15 +527,17 @@ loadNewButton->setFixedSize(wid, 30);
 resetButton->setFixedSize(fontMetrics().horizontalAdvance("  Reset  "), 30);
 
 
-// setting the layout
-dockinglayout->setContentsMargins(0, 0, 0, 0);
+QLabel* nodeIDLabel = new QLabel("Node ID: ", dockContent);
 
+//tablelayout->setSizeConstraint(QLayout::SizeConstraint::SetMinimumSize);
+//tablelayout->setContentsMargins(10, 10, 10, 10);
 
 // setting the minimum size to be the button's width so that it is always readable
 dockContent->setMinimumWidth(table->width());
 
 // set spacing
 dockinglayout->setSpacing(0);
+dockinglayout->setAlignment(Qt::AlignTop);
 
 // adding them all to here to stop them having to be individually stored in the class
 widgets.push_back(fileMen);
@@ -546,13 +550,15 @@ widgets.push_back(resetButton);
 // adding both widgets to the dock
 buttonlayout->addWidget(loadNewButton);
 buttonlayout->addWidget(resetButton);
-tablelayout->addWidget(uniqueFac);
-tablelayout->addWidget(onlyFac);
-tablelayout->addWidget(table);
+tablelayout->addWidget(uniqueFac, 1);
+tablelayout->addWidget(onlyFac, 1);
+tablelayout->addWidget(table, 1, Qt::AlignAbsolute);
+nodeInfoLayout->addWidget(nodeIDLabel);
 
 // add the layout's together
 dockinglayout->addLayout(buttonlayout);
 dockinglayout->addLayout(tablelayout);
+dockinglayout->addLayout(nodeInfoLayout);
 
 
 // setting the dock layout
@@ -577,6 +583,10 @@ this->setColumnCount(3);
 
 resizeRowsToContents();
 resizeColumnsToContents();
+
+this->setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
+this->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+this->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
 }
 
 void Table::minimizeTable()
