@@ -2,14 +2,14 @@
 
 using namespace std;
 
-vector<int> loadPrimes(string filePath)
+vector<superint> loadPrimes(string filePath)
 {
-vector<int> primes;
+vector<superint> primes;
 
 // if file path empty give the base primes
 if(filePath == "")
     {
-    vector<int> p = {2, 3, 5, 7};
+    vector<superint> p = {2, 3, 5, 7};
     return p;
     }
 
@@ -29,15 +29,15 @@ in.close();
 return primes;
 }
 
-std::vector<int> sort(std::vector<int> arr)
+std::vector<superint> sort(std::vector<superint> arr)
 {
-int swaps = 0;
+superint swaps = 0;
 
 do
 {
 swaps = 0;
 
-for (int i = 0; i < arr.size()-1; i++)
+for (superint i = 0; i < arr.size()-1; i++)
     {
     if(arr[i] > arr[i+1])
         {

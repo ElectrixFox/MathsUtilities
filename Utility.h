@@ -16,6 +16,8 @@
 #include <regex>
 #include <functional>
 
+typedef unsigned int superint;
+
 class vec2
     {
     public:
@@ -46,9 +48,9 @@ class vec2
     void out() { printf("\n(%f, %f)", x, y); };
     };
 
-std::vector<int> loadPrimes(std::string filePath = "");
+std::vector<superint> loadPrimes(std::string filePath = "");
 
-std::vector<int> sort(std::vector<int> arr);
+std::vector<superint> sort(std::vector<superint> arr);
 
 
 

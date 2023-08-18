@@ -1,6 +1,6 @@
 #include "ConsecutiveComposites.h"
 
-extern std::vector<int> primes;
+extern std::vector<superint> primes;
 
 using std::tuple;
 

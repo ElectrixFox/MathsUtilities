@@ -2,17 +2,17 @@
 
 using namespace std;
 
-extern std::vector<int> primes;
+extern std::vector<superint> primes;
 
-int findClosestPrime(vector<int> pnums, int tofind, int higher)
+superint findClosestPrime(vector<superint> pnums, superint tofind, int higher)
 {
-int current = pnums[0];
+superint current = pnums[0];
 
 // can be improved by using a pseudo-binary search
-for (int i = 0; i < pnums.size()-1; i++)
+for (superint i = 0; i < pnums.size()-1; i++)
     {
-    int res1 = tofind - pnums[i];
-    int res2 = tofind - pnums[i+1];
+    long long int res1 = tofind - pnums[i];
+    long long int res2 = tofind - pnums[i+1];
 
     // if it has to be lower then it won't be the absolute
     if(higher == 0)
@@ -39,14 +39,19 @@ cout << "\nNot in range";
 return pnums[pnums.size()];
 }
 
-vector<int> findPrimes(vector<int> pnums, int upto)
+vector<superint> findPrimes(vector<superint> pnums, superint upto)
 {
 int size = upto;
 int psize = pnums.size()-1;
-vector<int> numbers;
+vector<superint> numbers;
+
+// the starting number of the loop
+superint startnum = 1;
 
 cout << "\nupto: " << upto;
 
+// re calls the function at a smaller degree if the largest prime is smaller than the sqrt of the upto
+// this enables more primes to be collected before
 if(ceil(sqrt(upto)) > pnums[psize])
     {
     appendvec(pnums, findPrimes(pnums, ceil(sqrt(upto))));
@@ -54,8 +59,14 @@ if(ceil(sqrt(upto)) > pnums[psize])
     }
 
 
+// we can set the starting number to the largest prime we have since we know all of the primes before that
+if(upto > pnums[psize]) startnum = pnums[psize];
+
+// set numbers equal to pnums so that all of the current primes are already in the vector
+numbers = pnums;
+
 // go through all of the numbers up to the upper bound
-for (int i = 1; i < size; i++)
+for (superint i = startnum; i < size; i++)
     {
     int passcount = 0;
 
@@ -73,6 +84,10 @@ for (int i = 1; i < size; i++)
         {
         numbers.push_back(i);
         }
+
+    //printf("\n%f", );
+    
+    std::cout << "\nProgress: " << 100*((float)((float)i)/((float)size)) << "%";
     }
 
 
@@ -86,14 +101,13 @@ cout << '\n';
 return numbers;
 }
 
-
-vector<int> getPrimes(string filePath)
+vector<superint> getPrimes(string filePath)
 {
-vector<int> pnums;
+vector<superint> pnums;
 
 if(filePath == "")
     {
-    vector<int> p = {2, 3, 5, 7};
+    vector<superint> p = {2, 3, 5, 7};
     return p;
     }
 
@@ -111,7 +125,7 @@ in.close();
 return pnums;
 }
 
-int writePrimes(string filePath, vector<int> pnums)
+int writePrimes(string filePath, vector<superint> pnums)
 {
 ofstream out(filePath, ios::out);
 
@@ -126,7 +140,7 @@ out.close();
 return 1;
 }
 
-int appendvec(vector<int>& a, vector<int> b)
+int appendvec(vector<superint>& a, vector<superint> b)
 {
 for (int i = 0; i < b.size(); i++)
     {

@@ -236,8 +236,8 @@ if(active->shapeType == Shape::ShapeType::NODE)
     std::string lab2 = ((Node*)clicked)->getText();
 
     // convert them to ints
-    int ilab1 = atoi(lab1.c_str());
-    int ilab2 = atoi(lab2.c_str());
+    superint ilab1 = atoi(lab1.c_str());
+    superint ilab2 = atoi(lab2.c_str());
 
     // check see if it is a factor or a number
     int primeTest1 = isPrime(ilab1);
@@ -529,8 +529,9 @@ resetButton->setFixedSize(fontMetrics().horizontalAdvance("  Reset  "), 30);
 
 QLabel* nodeIDLabel = new QLabel("Node ID: ", dockContent);
 
-//tablelayout->setSizeConstraint(QLayout::SizeConstraint::SetMinimumSize);
-//tablelayout->setContentsMargins(10, 10, 10, 10);
+inNum = new QLineEdit(dockContent);
+inNum->setPlaceholderText("Enter Number to check");
+QPushButton* submit = new QPushButton("Submit", dockContent);
 
 // setting the minimum size to be the button's width so that it is always readable
 dockContent->setMinimumWidth(table->width());
@@ -552,13 +553,15 @@ buttonlayout->addWidget(loadNewButton);
 buttonlayout->addWidget(resetButton);
 tablelayout->addWidget(uniqueFac, 1);
 tablelayout->addWidget(onlyFac, 1);
-tablelayout->addWidget(table, 1, Qt::AlignAbsolute);
 nodeInfoLayout->addWidget(nodeIDLabel);
+nodeInfoLayout->addWidget(inNum);
+nodeInfoLayout->addWidget(submit);
+tablelayout->addWidget(table, 1, Qt::AlignAbsolute);
 
 // add the layout's together
 dockinglayout->addLayout(buttonlayout);
-dockinglayout->addLayout(tablelayout);
 dockinglayout->addLayout(nodeInfoLayout);
+dockinglayout->addLayout(tablelayout);
 
 
 // setting the dock layout
@@ -572,6 +575,7 @@ connect(loadNewButton, &QPushButton::clicked, this, pressy);
 connect(resetButton, &QPushButton::clicked, this, remAll);
 connect(uniqueFac, &QCheckBox::clicked, this, uniqueFactors);
 connect(onlyFac, &QCheckBox::clicked, this, onlyFactors);
+connect(submit, &QCheckBox::clicked, this, testIsPrime);
 };
 
 Table::Table(QWidget* parent)
@@ -647,11 +651,20 @@ int curRow = dc->getTopV();
 
 Detail detail = dc->getTop();
 
-Node* number = new Node({50, 50}, std::to_string(detail.number), 14, "light green");
+// composite
+std::string compnum = std::to_string(detail.number);
+
+// calculation to calculate the minimum size of the node to fit the number
+int numwid = gwin->fontMetrics().horizontalAdvance(compnum.c_str());
+int numhig = gwin->fontMetrics().height();
+
+if(numwid < numhig) numwid = numhig;
+
+Node* number = new Node({50, 50}, compnum, numwid, "light green");
 gwin->add(number);
 
 // adding the number to the table
-table->add({(float)curRow, 0}, std::to_string(detail.number));
+table->add({(float)curRow, 0}, compnum);
 
 for (Number n : detail.factors)
     {
@@ -671,7 +684,13 @@ for (Number i : detail.factors)
     
     if(dc->hasBeen(i.base) == 1 && dc->getUniqueFactor() == 1) continue;
 
-    Node* n = new Node({(float)(100 + count*50), (float)50}, strnum, 14, "light blue");
+    // calculation to calculate the minimum size of the node to fit the number
+    int numwid = gwin->fontMetrics().horizontalAdvance(strnum.c_str());
+
+    // if the width is less than the height use the height as the size factor
+    if(numwid < numhig) numwid = numhig;
+
+    Node* n = new Node({(float)(100 + count*50), (float)50}, strnum, numwid, "light blue");
     
     gwin->add(n);
 
@@ -728,6 +747,26 @@ gwin->toggleConnect();
 void MainWindow::uniqueFactors()
 {
 dc.toggleUniqueFactor();
+}
+
+void MainWindow::testIsPrime()
+{
+std::string inputtxt = (const char*)inNum->text().data();
+
+unsigned int in = atoi(inputtxt.c_str());
+
+// variable to record if it is prime
+int Isprime = isPrime(in);
+
+// if it is prime turn the background light green
+if(Isprime == 1) inNum->setStyleSheet("background-color: rgba(187, 255, 181, 1);");
+// clear the background
+else inNum->setStyleSheet("background-color: none;");
+
+QTimer t;
+
+// clear the background after 1 second
+t.singleShot(1000, ([&]{inNum->setStyleSheet("background-color: none;");}));
 }
 
 int CpMain()

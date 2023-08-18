@@ -114,11 +114,13 @@ class MainWindow : public QMainWindow
     void remAll();
     void uniqueFactors();
     void onlyFactors();
+    void testIsPrime();
 
 
     private:
     std::vector<QWidget*> widgets;
     QVBoxLayout* dockinglayout;
+    QLineEdit* inNum;
     Table* table;
     };
 
