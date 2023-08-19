@@ -285,6 +285,9 @@ updateNodeColour();
 void MainWindow::updEditorUI()
 {
 std::cout << "\nUpdating UI";
+
+if(gwin->getLastActive() == nullptr) return;
+
 nodeEditor->CallUpdate((Node*)gwin->getLastActive());
 }
 
@@ -427,34 +430,48 @@ QPushButton* createNewNode = new QPushButton("Create new Node");
 
 // all of the stuff for changing the colour
 label_inColour = new QLabel("Colour: ");
-QLineEdit* inColour = new QLineEdit();
+inColour = new QLineEdit();
 inColour->setPlaceholderText("Enter Colour");
 
 label_nodeNumber = new QLabel("Number: ");
-QLineEdit* inNumber = new QLineEdit();
+inNumber = new QLineEdit();
 inNumber->setPlaceholderText("Enter Number");
 
 //connect(createNewNode, &QPushButton::clicked, this, createNode);
-//connect(inColour, &QLineEdit::editingFinished, this, updNodeCol);
 
 editorLayout->addWidget(label_inColour, 0, 0);
 editorLayout->addWidget(inColour, 1, 0);
 editorLayout->addWidget(label_nodeNumber, 2, 0);
 editorLayout->addWidget(inNumber, 3, 0);
 
+connect(inColour, &QLineEdit::editingFinished, this, updNode);
+
 update();
+}
+
+
+void NodeEditor::updNode()
+{
+if(activeNode == nullptr) return;
+
+// the text from the number input
+std::string numText = inNumber->text().toStdString();
+
+// text from the colour input
+std::string colText = inColour->text().toStdString();
+
+
+// if the textbox is empty then don't update the text
+if(inNumber->text().isEmpty() != 1)
+    activeNode->setText(numText);
+
+// if the textbox isn't empty change the colour
+if(inColour->text().isEmpty() != 1)
+    activeNode->changeColourOrigional(colText);
 }
 
 void NodeEditor::CallUpdate()
 {
-
-}
-
-void NodeEditor::CallUpdate(Node* node)
-{
-// setting the new active node
-activeNode = node;
-
 // getting the new node's colour
 std::string newColour = "Colour: " + activeNode->getColour();
 
@@ -466,9 +483,18 @@ label_inColour->setText(newColour.c_str());
 std::string newNumber = "Number: " + activeNode->getText();
 
 // setting the new number
-label_nodeNumber->setText(newColour.c_str());
+label_nodeNumber->setText(newNumber.c_str());
 
 update();
+}
+
+void NodeEditor::CallUpdate(Node* node)
+{
+// setting the new active node
+activeNode = node;
+
+// call the UI updates
+CallUpdate();
 }
 
 

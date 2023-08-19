@@ -11,6 +11,8 @@
 
 class NodeEditor : public QWidget
     {
+    Q_OBJECT
+    
     public:
     NodeEditor(QWidget* parent = nullptr);
 
@@ -19,6 +21,9 @@ class NodeEditor : public QWidget
     void CallUpdate();
     void CallUpdate(Node* node);
 
+    public slots:
+    void updNode();
+
     private:
     Node* activeNode;
 
@@ -26,6 +31,9 @@ class NodeEditor : public QWidget
     private:
     QLabel* label_inColour;
     QLabel* label_nodeNumber;
+
+    QLineEdit* inColour;
+    QLineEdit* inNumber;
 
     };
 
