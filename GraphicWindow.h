@@ -10,6 +10,10 @@
 
 class GraphicWindow : public QWidget
     {
+
+    signals:
+        void eventOccurred();
+
     public: 
     GraphicWindow(QWidget* parent = nullptr) : QWidget(parent) { setMouseTracking(true); };
 
@@ -27,6 +31,8 @@ class GraphicWindow : public QWidget
 
     // returns the minimum radius of a node to contain all of the text 
     int getMinimumRadius(std::string nodeText);
+
+    Shape* getActive() { return active; };
 
     protected:
     // vector position of the pointer
@@ -84,62 +90,6 @@ class GraphicWindow : public QWidget
     void moveShape(QMouseEvent* event);
     };
 
-class Table : public QTableWidget
-    {
-    public:
-    Table(QWidget* parent = nullptr);
-    
-    void add(int column, std::string item, int startnewrow = 0);
-    void add(vec2 tablePos, std::string item);
-
-    void newRow();
-
-    void minimizeTable();
-
-    void Clear();
-
-    int getLocalTop() { localTop = rowCount() - 1; return localTop;};
-
-    private:
-    int localTop = 0;
-    std::vector<QTableWidgetItem*> tableItems;
-    
-
-    };
-
-int loadnew(GraphicWindow* gwin, DetailContainer* dc, Table* table);
-
-class MainWindow : public QMainWindow
-    {
-    public:
-    MainWindow(QWidget* parent = nullptr, GraphicWindow* graphicWindow = nullptr);
-
-    GraphicWindow* gwin;
-    DetailContainer dc;
-
-    public slots:
-    void pressy();
-    void remAll();
-    void uniqueFactors();
-    void onlyFactors();
-    void testIsPrime();
-    void createNode();
-
-
-    private:
-    std::vector<QWidget*> widgets;
-    QVBoxLayout* dockinglayout;
-    QLineEdit* inNum;
-    Table* table;
-
-    QLineEdit* colourInput;
-    QLineEdit* internalLabel;
-
-    void resizeElement(QWidget* widget);
-    void resizeButton(QPushButton* lebutton);
-    };
-
-int CpMain();
 
 
 #endif

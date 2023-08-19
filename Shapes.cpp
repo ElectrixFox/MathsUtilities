@@ -79,6 +79,11 @@ void Shape::changeColour(std::string col)
 colour = col;
 };
 
+void Shape::changeColourOrigional(std::string col)
+{
+origionalColour = col;
+};
+
 void Shape::revertColour()
 {
 changeColour(origionalColour);

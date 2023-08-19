@@ -48,6 +48,7 @@ class Shape
     void toggleShowText() { shouldShowText = !shouldShowText; };
 
     void changeColour(std::string col);
+    void changeColourOrigional(std::string col);
     void revertColour();
 
     int getID() { return id; };
@@ -77,7 +78,7 @@ class Shape
     int id;
     vec2 position;
     std::string colour = "red";
-    const std::string origionalColour; 
+    std::string origionalColour; 
     };
 
 class SRectangle : public Shape

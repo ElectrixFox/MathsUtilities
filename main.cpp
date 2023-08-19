@@ -1,7 +1,7 @@
 #include "Utility.h"
 #include "Factor.h"
 #include "ConsecutiveComposites.h"
-#include "GraphicWindow.h"
+#include "MainWindow.h"
 
 std::vector<superint> primes;
 
@@ -22,6 +22,7 @@ int main(int argc, char const *argv[])
 primes = loadPrimes("primes.txt");
 
 CpMain();
+
 
 /* primes = loadPrimes("primes.txt");
 
