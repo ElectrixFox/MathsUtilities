@@ -172,6 +172,7 @@ class Node : public Circle
     std::string getText() { return textContent; };
 
     void addFactor(Number n);
+    void addFactors(Factors facts);
 
     private:
     Line e;

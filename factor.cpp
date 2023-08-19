@@ -42,6 +42,75 @@ else
 return res;
 };
 
+std::vector<superint> Factors::uniqueI()
+{
+// sorted factors
+std::vector<superint> sFacs;
+
+// the unique factors
+std::vector<superint> uniFactors;
+
+// sort the factors
+sFacs = sort(x);
+
+// add the first factor to the list
+uniFactors.push_back(sFacs[0]);
+
+// add all of the unique ones to the unique list
+for(int i = 1; i < sFacs.size(); i++)
+    {
+    if(sFacs[i-1] == sFacs[i])
+        continue;
+    else
+        uniFactors.push_back(sFacs[i]);
+    }
+
+return uniFactors;
+}
+
+std::string Factors::unique(std::string separator)
+{
+// getting all of the unique integer factors
+std::vector<superint> uniFactors = uniqueI();
+
+std::string endProd = "";
+
+// construct the final string
+for (superint i : uniFactors)
+    {
+    // if i is the last number don't add any separator
+    if(uniFactors[uniFactors.size() - 1] == i) separator = "";
+
+    // add the number and the separator to the final string
+    endProd += std::to_string(i) + separator;
+    }
+
+return endProd;
+}
+
+std::vector<Number> Factors::getAsNumbers()
+{
+// getting all of the factors in exponential form
+std::vector<Number> nums = exponentiate(x);
+
+return nums;
+}
+
+Factors getAsFactors(std::vector<Number> numbers)
+{
+Factors f;
+
+// for each number in numbers
+for(Number n : numbers)
+    {
+    // add the base exponent amount of times
+    for (int i = 0; i < n.exponent; i++)
+        f.x.push_back(n.base);   
+    }
+
+return f;
+}
+
 superint outFactors(Factors f)
 {
 std::vector<Number> ns = exponentiate(f.x);
@@ -133,20 +202,6 @@ return 1;
 Factors Factor(superint n)
 {
 Factors f;
-
-// factor by trial division for small numbers
-auto trialdiv = [](superint n, Factors f) {
-    for(superint i = 0; i < primes.size(); i++)
-        {
-        while(n % primes[i] == 0)
-            {
-            f.x.push_back(primes[i]);
-            n /= primes[i];
-            }
-        }
-    };
-
-
 baseFermat(n, f.x);
 
 f.x = sort(f.x);
@@ -161,6 +216,27 @@ std::cin.ignore();
 std::cin.clear();
 
 return 0;
+}
+
+Factors BruteFactor(superint n)
+{
+Factors f;
+
+// trial division
+for(superint i = 0; i < primes.size(); i++)
+    {
+    // while n divides by the prime
+    while(n % primes[i] == 0)
+        {
+        // add the prime to the list of factors
+        f.x.push_back(primes[i]);
+
+        // divide n by the prime
+        n /= primes[i];
+        }
+    }
+
+return f;
 }
 
 std::vector<Number> exponentiate(std::vector<superint> nums)

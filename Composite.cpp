@@ -145,5 +145,39 @@ for(std::string s : lines)
 
 }
 
+void DetailContainer::pushTop(Detail detail)
+{
+/* // insert the number at the top of the vector
+numbers.insert(numbers.begin() + top, detail.number);
 
+std::vector<superint> facs;
+std::vector<superint> exps;
 
+// add all of the factors and respective exponents to vectors
+for(Number n : detail.factors)
+    {
+    facs.push_back(n.base);
+    exps.push_back(n.exponent);
+    }
+
+// add the factors and exponents to the factors and exponents
+factors.insert(factors.begin() + top, facs);
+exponents.insert(factors.begin() + top, exps); */
+
+// insert the number at the top of the vector
+numbers.push_back(detail.number);
+
+std::vector<superint> facs;
+std::vector<superint> exps;
+
+// add all of the factors and respective exponents to vectors
+for(Number n : detail.factors)
+    {
+    facs.push_back(n.base);
+    exps.push_back(n.exponent);
+    }
+
+// add the factors and exponents to the factors and exponents
+factors.push_back(facs);
+exponents.push_back(exps);
+}

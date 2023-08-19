@@ -25,6 +25,9 @@ class GraphicWindow : public QWidget
     // toggle whether the factors can connect
     int toggleConnect();
 
+    // returns the minimum radius of a node to contain all of the text 
+    int getMinimumRadius(std::string nodeText);
+
     protected:
     // vector position of the pointer
     vec2 pPos;
@@ -85,15 +88,20 @@ class Table : public QTableWidget
     {
     public:
     Table(QWidget* parent = nullptr);
-
+    
+    void add(int column, std::string item, int startnewrow = 0);
     void add(vec2 tablePos, std::string item);
+
+    void newRow();
 
     void minimizeTable();
 
     void Clear();
 
-    private:
+    int getLocalTop() { localTop = rowCount() - 1; return localTop;};
 
+    private:
+    int localTop = 0;
     std::vector<QTableWidgetItem*> tableItems;
     
 
@@ -115,6 +123,7 @@ class MainWindow : public QMainWindow
     void uniqueFactors();
     void onlyFactors();
     void testIsPrime();
+    void createNode();
 
 
     private:
@@ -122,6 +131,12 @@ class MainWindow : public QMainWindow
     QVBoxLayout* dockinglayout;
     QLineEdit* inNum;
     Table* table;
+
+    QLineEdit* colourInput;
+    QLineEdit* internalLabel;
+
+    void resizeElement(QWidget* widget);
+    void resizeButton(QPushButton* lebutton);
     };
 
 int CpMain();

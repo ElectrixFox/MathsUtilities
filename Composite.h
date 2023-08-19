@@ -29,14 +29,20 @@ class DetailContainer
     int hasBeen(int value);
 
     // print the top value
-    void printTopV() { printf("\n%d: ", numbers[top]); for (int i = 0; i < factors[top].size(); i++)
+    void printTopV() 
     {
-    printf("%d^%d", factors[top][i], exponents[top][i]);
+    printf("\n%d: ", numbers[top]);
+    for (int i = 0; i < factors[top].size(); i++)
+        {
+        printf("%d^%d", factors[top][i], exponents[top][i]);
 
-    if(i+1 != factors[top].size()) printf(" * ");
-    }
-     };
+        if(i+1 != factors[top].size()) 
+            printf(" * ");
+        }
+    };
 
+
+    void pushTop(Detail detail);
 
     private:
     int top = 0;

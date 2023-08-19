@@ -117,8 +117,15 @@ if(event->modifiers() == Qt::ShiftModifier && colShape == -1)
     return;
     }
 
-// if it's a left click and it is on something
-if(pressedShape != 0) Select(colShape);
+// if it's a left click and it is on something and move it to the top of the render queue
+if(pressedShape != 0) 
+    {
+    // selects the clicked shape
+    Select(colShape); 
+    // swaps the first element of the vector with the clicked one
+    std::swap(shapes[colShape], shapes[0]); 
+    }
+
 };
 
 void GraphicWindow::mouseMoveEvent(QMouseEvent* event)
@@ -400,11 +407,12 @@ void GraphicWindow::boxSelect()
 // rect pos
 vec2 rPos = boxSel->coords(); 
 
+// get the current scale
 boxSel->getScale();
 
-pPos.out();
-
+// set the new scale
 boxSel->setScale(pPos-rPos);
+
 update();
 }
 
@@ -466,10 +474,42 @@ factorConnect ^= 1;
 return factorConnect;
 }
 
+int GraphicWindow::getMinimumRadius(std::string nodeText)
+{
+int minrad = 0;
+
+// calculation to calculate the minimum size of the node to fit the number
+int wid = fontMetrics().horizontalAdvance(nodeText.c_str());
+int hig = fontMetrics().height();
+
+// if the width is less than the height set the min radius equal to the height
+if(wid < hig) minrad = hig;
+else minrad = wid;
+
+return minrad;
+}
+
 Shape* GraphicWindow::getShape(int index)
 {
 return shapes[index];
 }
+
+void MainWindow::resizeElement(QWidget* widget)
+{
+widget->resize(widget->sizeHint().width(), widget->sizeHint().height());
+}
+
+void MainWindow::resizeButton(QPushButton* lebutton)
+{
+//lebutton->setFixedSize(lebutton->fontMetrics().horizontalAdvance(lebutton->text()), lebutton->fontMetrics().height());
+
+lebutton->setFixedSize(lebutton->sizeHint().width(), lebutton->sizeHint().height());
+
+
+std::cout << "\n" << lebutton->text().toStdString();
+std::cout << "\nHorizontal Advance: " << lebutton->fontMetrics().horizontalAdvance(lebutton->text());
+}
+
 
 MainWindow::MainWindow(QWidget* parent, GraphicWindow* graphicWindow)
     : QMainWindow(parent), gwin(graphicWindow)
@@ -478,9 +518,22 @@ MainWindow::MainWindow(QWidget* parent, GraphicWindow* graphicWindow)
 QMenuBar* menubar = new QMenuBar(this);
 setMenuBar(menubar);
 
+QAction* uniFac = new QAction("Unique Factors", this);
+uniFac->setCheckable(1);
+uniFac->setChecked(0);
+
+QAction* onlyFacs = new QAction("Only Factors", this);
+onlyFacs->setCheckable(1);
+onlyFacs->setChecked(1);
+
 // add the main menu
-QMenu* fileMen = new QMenu("FILE");
-menubar->addMenu(fileMen);
+QMenu* optionsMenu = new QMenu("Options");
+menubar->addMenu(optionsMenu);
+optionsMenu->addAction(uniFac);
+optionsMenu->addAction(onlyFacs);
+
+connect(uniFac, &QAction::triggered, this, uniqueFactors);
+connect(onlyFacs, &QAction::triggered, this, onlyFactors);
 
 // setting up the main widget
 QDockWidget* dockWidget = new QDockWidget("Side pannel", this);
@@ -495,53 +548,35 @@ dockWidget->setWidget(dockContent);
 dockinglayout = new QVBoxLayout(dockContent);
 QHBoxLayout* buttonlayout = new QHBoxLayout();
 QVBoxLayout* tablelayout = new QVBoxLayout();
-QHBoxLayout* nodeInfoLayout = new QHBoxLayout();
-
-buttonlayout->setMargin(0);
-tablelayout->setMargin(0);
-tablelayout->setSpacing(1);
+QVBoxLayout* nodeInfoLayout = new QVBoxLayout();
 
 // add the widget to the window
 addDockWidget(Qt::RightDockWidgetArea, dockWidget);
 
-// adding the unique factor checkbox
-QCheckBox* uniqueFac = new QCheckBox("Unique Factors", dockContent);
-QCheckBox* onlyFac = new QCheckBox("Only Factors", dockContent);
-
-onlyFac->setChecked(1);
-
-table = new Table(dockContent);
-
-table->resizeColumnsToContents();
-table->resizeRowsToContents();
+table = new Table();
 
 // button setup
-QPushButton* loadNewButton = new QPushButton("Load new set", dockContent);
-QPushButton* resetButton = new QPushButton("Reset", dockContent);
+QPushButton* loadNewButton = new QPushButton("Load new set");
+QPushButton* resetButton = new QPushButton("Reset");
 
-// the width of the button's text
-int wid = fontMetrics().horizontalAdvance("  Load new set  ");
+QLabel* nodeIDLabel = new QLabel("Node ID: ");
 
-// setting the width and height of the button
-loadNewButton->setFixedSize(wid, 30);
-resetButton->setFixedSize(fontMetrics().horizontalAdvance("  Reset  "), 30);
+QPushButton* createNewNode = new QPushButton("Create");
+colourInput = new QLineEdit();
+internalLabel = new QLineEdit();
 
-
-QLabel* nodeIDLabel = new QLabel("Node ID: ", dockContent);
-
-inNum = new QLineEdit(dockContent);
+inNum = new QLineEdit();
 inNum->setPlaceholderText("Enter Number to check");
-QPushButton* submit = new QPushButton("Submit", dockContent);
+QPushButton* submit = new QPushButton("Submit");
 
-// setting the minimum size to be the button's width so that it is always readable
-dockContent->setMinimumWidth(table->width());
-
-// set spacing
-dockinglayout->setSpacing(0);
-dockinglayout->setAlignment(Qt::AlignTop);
+// resizing the buttons
+resizeButton(loadNewButton);
+resizeButton(resetButton);
+resizeButton(createNewNode);
+resizeButton(submit);
 
 // adding them all to here to stop them having to be individually stored in the class
-widgets.push_back(fileMen);
+widgets.push_back(optionsMenu);
 widgets.push_back(dockWidget);
 widgets.push_back(dockContent);
 widgets.push_back(table);
@@ -551,12 +586,15 @@ widgets.push_back(resetButton);
 // adding both widgets to the dock
 buttonlayout->addWidget(loadNewButton);
 buttonlayout->addWidget(resetButton);
-tablelayout->addWidget(uniqueFac, 1);
-tablelayout->addWidget(onlyFac, 1);
+
+nodeInfoLayout->addWidget(createNewNode);
+nodeInfoLayout->addWidget(colourInput);
+nodeInfoLayout->addWidget(internalLabel);
 nodeInfoLayout->addWidget(nodeIDLabel);
 nodeInfoLayout->addWidget(inNum);
 nodeInfoLayout->addWidget(submit);
-tablelayout->addWidget(table, 1, Qt::AlignAbsolute);
+
+tablelayout->addWidget(table);
 
 // add the layout's together
 dockinglayout->addLayout(buttonlayout);
@@ -573,16 +611,15 @@ dockWidget->setWidget(dockContent);
 // connecting the button to the window so that it can be used
 connect(loadNewButton, &QPushButton::clicked, this, pressy);
 connect(resetButton, &QPushButton::clicked, this, remAll);
-connect(uniqueFac, &QCheckBox::clicked, this, uniqueFactors);
-connect(onlyFac, &QCheckBox::clicked, this, onlyFactors);
-connect(submit, &QCheckBox::clicked, this, testIsPrime);
+connect(submit, &QPushButton::clicked, this, testIsPrime);
+connect(createNewNode, &QPushButton::clicked, this, createNode);
 };
 
 Table::Table(QWidget* parent)
     : QTableWidget(parent)
 {
 // setting the rows and the columns
-this->setRowCount(3);
+this->setRowCount(0);
 this->setColumnCount(3);
 
 resizeRowsToContents();
@@ -609,6 +646,34 @@ for (int i = 0; i < columnCount(); i++)
 
 setFixedHeight(totalH);
 setFixedWidth(totalW);
+}
+
+void Table::add(int column, std::string item, int startnewrow)
+{
+QTableWidgetItem* element = new QTableWidgetItem(item.c_str());
+
+// row count
+int rc = rowCount();
+
+// add a new row if starting new row
+if(startnewrow == 1)
+    setRowCount(rc+1);
+
+// updating the local top
+localTop = rc - 1;
+
+// setting the new item
+setItem(localTop, column, element);
+
+// resizing
+resizeRowsToContents();
+resizeColumnsToContents();
+
+// updating the table
+update();
+
+// adding the element to the list
+tableItems.push_back(element);
 }
 
 void Table::add(vec2 tablePos, std::string item)
@@ -639,6 +704,22 @@ update();
 tableItems.push_back(element);
 }
 
+void Table::newRow()
+{
+// get the row count
+int rc = rowCount();
+
+// set the new row count to the current + 1
+setRowCount(rc+1);
+
+// resizing
+resizeRowsToContents();
+resizeColumnsToContents();
+
+// updating the table
+update();
+}
+
 void Table::Clear()
 {
 clearContents();
@@ -647,30 +728,32 @@ clearContents();
 // LOOK AT THIS IT'S BUGGING SOMETIMES WITH READING BACK FACTORS (LOOK AT 30)
 int loadnew(GraphicWindow* gwin, DetailContainer* dc, Table* table)
 {
-int curRow = dc->getTopV();
+int curRow = table->getLocalTop();
 
 Detail detail = dc->getTop();
 
 // composite
 std::string compnum = std::to_string(detail.number);
 
-// calculation to calculate the minimum size of the node to fit the number
-int numwid = gwin->fontMetrics().horizontalAdvance(compnum.c_str());
-int numhig = gwin->fontMetrics().height();
+int minrad = gwin->getMinimumRadius(compnum);
 
-if(numwid < numhig) numwid = numhig;
-
-Node* number = new Node({50, 50}, compnum, numwid, "light green");
+// create the node of the base number
+Node* number = new Node({50, 50}, compnum, minrad, "light green");
 gwin->add(number);
 
-// adding the number to the table
-table->add({(float)curRow, 0}, compnum);
+// create a new row for the values
+table->newRow();
 
-for (Number n : detail.factors)
-    {
-    // adding the factors to the vector
-    number->addFactor(n);
-    }
+// get this again because we're making a new row
+curRow = table->getLocalTop();
+
+// adding the number to the table
+table->add(0, compnum);
+
+Factors factors = getAsFactors(detail.factors);
+
+// adding all of the factors to the number node
+number->addFactors(factors);
 
 // a collection of the factors
 std::stringstream ss[2];
@@ -678,19 +761,17 @@ std::stringstream ss[2];
 int count = 0;
 for (Number i : detail.factors)
     {
-    // doing this before so they can go straight to the table
-    std::string strnum = std::to_string(i.base);
-    ss[0] << strnum << ", ";
-    
+    // if the base has already been and the factors have to be unique then continue to the next number
     if(dc->hasBeen(i.base) == 1 && dc->getUniqueFactor() == 1) continue;
 
-    // calculation to calculate the minimum size of the node to fit the number
-    int numwid = gwin->fontMetrics().horizontalAdvance(strnum.c_str());
+    // doing this down here to save processing time
+    std::string strnum = std::to_string(i.base);
+    ss[0] << strnum << ", ";
 
-    // if the width is less than the height use the height as the size factor
-    if(numwid < numhig) numwid = numhig;
+    // calculation for getting the minimum radius
+    minrad = gwin->getMinimumRadius(strnum);
 
-    Node* n = new Node({(float)(100 + count*50), (float)50}, strnum, numwid, "light blue");
+    Node* n = new Node({(float)(100 + count*50), (float)50}, strnum, minrad, "light blue");
     
     gwin->add(n);
 
@@ -703,8 +784,10 @@ std::string compactStr = ss[0].str();
 // the final string -2 as it gets rid of the extra ", "
 std::string final = compactStr.substr(0, compactStr.length()-2);
 
+// add the factors to the second row
 table->add({(float)curRow, 1}, final);
 
+// add the multiplication to the exponential component
 for (Number n : detail.factors)
     {
     ss[1] << n.getStr() << " * ";
@@ -751,7 +834,7 @@ dc.toggleUniqueFactor();
 
 void MainWindow::testIsPrime()
 {
-std::string inputtxt = (const char*)inNum->text().data();
+std::string inputtxt = inNum->text().toStdString();
 
 unsigned int in = atoi(inputtxt.c_str());
 
@@ -767,6 +850,78 @@ QTimer t;
 
 // clear the background after 1 second
 t.singleShot(1000, ([&]{inNum->setStyleSheet("background-color: none;");}));
+}
+
+void MainWindow::createNode()
+{
+std::string col = colourInput->text().toStdString();
+std::string internalLab = internalLabel->text().toStdString();
+
+// get the string as a number
+superint number = atoi(internalLab.c_str());
+
+// factor the inputted number
+Factors fs = BruteFactor(number);
+
+// getting the factors as numbers
+std::vector<Number> nums = fs.getAsNumbers();
+
+// increment the top
+dc.incrementTop();
+
+// create the detail to push
+Detail det = {number, nums};
+
+// pushing back a detail to the detail container
+dc.pushTop(det);
+
+// add a new row before adding
+table->newRow();
+
+// add the number in the first position
+table->add(0, internalLab, 0);
+
+// get only the unique factors
+table->add(1, fs.unique(), 0);
+
+// add the compressed exponential form of the factors to the table
+table->add(2, fs.compress(1), 0);
+
+// getting the minimum radius of the node
+int minrad = gwin->getMinimumRadius(internalLab);
+
+// create the node of the base number
+Node* numberNode = new Node({50, 50}, internalLab, minrad, "light green");
+
+// add the factors to the node
+numberNode->addFactors(fs);
+
+gwin->add(numberNode);
+
+// a count variable to count iterations for spacing of nodes
+int count = 0;
+
+for (Number i : nums)
+    {
+    // if the base has already been and the factors have to be unique then continue to the next number
+    if(dc.hasBeen(i.base) == 1 && dc.getUniqueFactor() == 1) continue;
+
+    // getting the base as a string
+    std::string strnum = std::to_string(i.base);
+
+    // calculation for getting the minimum radius
+    minrad = gwin->getMinimumRadius(strnum);
+
+    // creating the node
+    Node* n = new Node({(float)(100 + count*50), (float)50}, strnum, minrad, "light blue");
+
+    // adding the node to the graphics window
+    gwin->add(n);
+
+    count++;
+    }
+
+update();
 }
 
 int CpMain()

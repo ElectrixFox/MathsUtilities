@@ -411,3 +411,8 @@ void Node::addFactor(Number n)
 {
 nums.push_back(n);
 }
+
+void Node::addFactors(Factors facts)
+{
+nums = facts.getAsNumbers();
+}
