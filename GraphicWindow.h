@@ -35,6 +35,7 @@ class GraphicWindow : public QWidget
     int getMinimumRadius(std::string nodeText);
 
     Shape* getActive() { return active; };
+    Shape* getLastActive() { return lastActive; };
 
     protected:
     // vector position of the pointer
@@ -44,6 +45,7 @@ class GraphicWindow : public QWidget
 
     std::vector<Shape*> selected = {nullptr};
     Shape* active = selected[0];
+    Shape* lastActive;
     SRectangle* boxSel = nullptr;
     std::string prevcol = "";
 

@@ -422,6 +422,7 @@ void GraphicWindow::Select(Shape* s)
 Deselect();
 
 active = s;
+lastActive = s;
 }
 
 void GraphicWindow::Select(int index)

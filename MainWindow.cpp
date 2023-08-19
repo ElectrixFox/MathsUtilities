@@ -3,7 +3,7 @@
 MainWindow::MainWindow(QWidget* parent, GraphicWindow* graphicWindow)
     : QMainWindow(parent), gwin(graphicWindow)
 {
-connect(gwin, SIGNAL(eventOccurred()), this, SLOT(updNodeCol()));
+connect(gwin, SIGNAL(eventOccurred()), this, SLOT(updEditorUI()));
 
 #pragma region MenuBar
 // menu bar setup
@@ -76,7 +76,7 @@ inNumber->setPlaceholderText("Enter Number");
 
 nodeinfo_current = { nullptr, label_inColour, inColour, label_nodeNumber, inNumber };*/
 
-NodeEditor* nodeEditor = new NodeEditor();
+nodeEditor = new NodeEditor();
 
 // resizing the buttons
 resizeButton(loadNewButton);
@@ -132,22 +132,6 @@ connect(loadNewButton, &QPushButton::clicked, this, pressy);
 connect(resetButton, &QPushButton::clicked, this, remAll);
 connect(submit, &QPushButton::clicked, this, testIsPrime);
 };
-
-void MainWindow::updNodeCol()
-{
-Shape* curshape = gwin->getActive();
-
-// if there isn't a shape return
-if(curshape == nullptr) return;
-
-// if the active shape isn't a node return
-if(curshape->shapeType != Shape::ShapeType::NODE) return;
-
-// set the nodeinfo node as active
-nodeinfo_current.node_active = (Node*)curshape;
-
-updateNodeColour();
-}
 
 void MainWindow::updateNodeColour()
 {
@@ -280,6 +264,28 @@ for (Number i : nums)
     }
 
 update();
+}
+
+void MainWindow::updNodeCol()
+{
+Shape* curshape = gwin->getActive();
+
+// if there isn't a shape return
+if(curshape == nullptr) return;
+
+// if the active shape isn't a node return
+if(curshape->shapeType != Shape::ShapeType::NODE) return;
+
+// set the nodeinfo node as active
+nodeinfo_current.node_active = (Node*)curshape;
+
+updateNodeColour();
+}
+
+void MainWindow::updEditorUI()
+{
+std::cout << "\nUpdating UI";
+nodeEditor->CallUpdate((Node*)gwin->getLastActive());
 }
 
 void MainWindow::resizeElement(QWidget* widget)
@@ -550,13 +556,14 @@ int CpMain()
 {
 int h = 0;
 QApplication app(h, {});
-MainWindow* window = new MainWindow();
+
+GraphicWindow gwin;
+MainWindow* window = new MainWindow(nullptr, &gwin);
 
 app.setActiveWindow(window);
 
 //EventsManager& em = EventsManager::instance();
 
-GraphicWindow gwin;
 window->gwin = &gwin;
 
 window->setWindowTitle("Graphy");

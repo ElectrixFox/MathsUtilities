@@ -55,9 +55,10 @@ class Table : public QTableWidget
 int loadnew(GraphicWindow* gwin, DetailContainer* dc, Table* table);
 
 class MainWindow : public QMainWindow
+    {
+
     Q_OBJECT
     
-    {
     public:
     MainWindow(QWidget* parent = nullptr, GraphicWindow* graphicWindow = nullptr);
 
@@ -72,11 +73,13 @@ class MainWindow : public QMainWindow
     void testIsPrime();
     void createNode();
     void updNodeCol();
+    void updEditorUI();
 
     private:
     std::vector<QWidget*> widgets;
     QVBoxLayout* dockinglayout;
     QLineEdit* inNum;
+    NodeEditor* nodeEditor;
     Table* table;
 
     struct gui_nodeInfo

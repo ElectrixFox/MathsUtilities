@@ -4,6 +4,7 @@
 #include <QtWidgets/QCheckBox>
 #include <QtCore/QArrayData>
 #include <QtWidgets/QLineEdit>
+#include <QtCore/QObject>
 #include <QtGui/QtGui>
 #include <QtWidgets/QWidget>
 #include <QtCore/QtCore>
