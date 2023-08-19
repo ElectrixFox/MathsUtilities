@@ -11,6 +11,8 @@
 class GraphicWindow : public QWidget
     {
 
+    Q_OBJECT
+
     signals:
         void eventOccurred();
 

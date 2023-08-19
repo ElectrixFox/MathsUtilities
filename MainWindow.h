@@ -55,6 +55,8 @@ class Table : public QTableWidget
 int loadnew(GraphicWindow* gwin, DetailContainer* dc, Table* table);
 
 class MainWindow : public QMainWindow
+    Q_OBJECT
+    
     {
     public:
     MainWindow(QWidget* parent = nullptr, GraphicWindow* graphicWindow = nullptr);
