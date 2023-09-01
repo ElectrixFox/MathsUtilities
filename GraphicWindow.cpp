@@ -320,6 +320,8 @@ Node* n = new Node(pPos, "5", getMinimumRadius("5"), "red");
 
 shapes.push_back(n);
 
+Select(n);
+
 emit eventOccurred();
 
 update();
@@ -423,6 +425,9 @@ Deselect();
 
 active = s;
 lastActive = s;
+
+
+emit eventOccurred();
 }
 
 void GraphicWindow::Select(int index)

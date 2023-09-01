@@ -286,9 +286,9 @@ void MainWindow::updEditorUI()
 {
 std::cout << "\nUpdating UI";
 
-if(gwin->getLastActive() == nullptr) return;
+if(gwin->getActive() == nullptr) return;
 
-nodeEditor->CallUpdate((Node*)gwin->getLastActive());
+nodeEditor->CallUpdate((Node*)gwin->getActive());
 }
 
 void MainWindow::resizeElement(QWidget* widget)
@@ -444,7 +444,8 @@ editorLayout->addWidget(inColour, 1, 0);
 editorLayout->addWidget(label_nodeNumber, 2, 0);
 editorLayout->addWidget(inNumber, 3, 0);
 
-connect(inColour, &QLineEdit::editingFinished, this, updNode);
+connect(inColour, &QLineEdit::returnPressed, this, updNode);
+connect(inNumber, &QLineEdit::returnPressed, this, updNode);
 
 update();
 }
@@ -467,7 +468,15 @@ if(inNumber->text().isEmpty() != 1)
 
 // if the textbox isn't empty change the colour
 if(inColour->text().isEmpty() != 1)
+    {
+    // change the node's origional colour
     activeNode->changeColourOrigional(colText);
+
+    // change the colour of the node
+    activeNode->changeColour(colText);
+    }
+
+CallUpdate();
 }
 
 void NodeEditor::CallUpdate()
@@ -490,6 +499,9 @@ update();
 
 void NodeEditor::CallUpdate(Node* node)
 {
+// if the clicked node isn't currently active in the editor clear the options
+if(activeNode != node) { inColour->clear(); inNumber->clear(); };
+
 // setting the new active node
 activeNode = node;
 
