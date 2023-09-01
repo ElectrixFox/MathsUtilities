@@ -2,13 +2,13 @@
 
 using namespace std;
 
-extern std::vector<int> primes;
+extern std::vector<superint> primes;
 
-int findPrime(int p, std::vector<int> primenums)
+superint findPrime(superint p, std::vector<superint> primenums)
 {
 // simple linear search
 // could work far more efficiently using a binary search
-for (int i = 0; i < primenums.size(); i++)
+for (superint i = 0; i < primenums.size(); i++)
     {
     if(primenums[i] == p)
         {
@@ -22,15 +22,16 @@ return -1;
 }
 
 // shortcut that uses the extern prime variable
-int findPrime(int p) { return findPrime(p, primes); }
+superint findPrime(superint p) { return findPrime(p, primes); }
 
-int isPrime(int p)
+int isPrime(superint p)
 {
-// gets the result if it is found
-int res = findPrime(p);
-
-// equal to acount for the first prime in the list
-if(res >= 0) return 1;
+// returns 1 if it is found
+for (int i = 0; i < primes.size(); i++)
+    {
+    if(primes[i] == p)
+        return 1;
+    }
 
 return 0;
 }

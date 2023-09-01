@@ -10,6 +10,12 @@
 
 class GraphicWindow : public QWidget
     {
+
+    Q_OBJECT
+
+    signals:
+        void eventOccurred();
+
     public: 
     GraphicWindow(QWidget* parent = nullptr) : QWidget(parent) { setMouseTracking(true); };
 
@@ -25,6 +31,12 @@ class GraphicWindow : public QWidget
     // toggle whether the factors can connect
     int toggleConnect();
 
+    // returns the minimum radius of a node to contain all of the text 
+    int getMinimumRadius(std::string nodeText);
+
+    Shape* getActive() { return active; };
+    Shape* getLastActive() { return lastActive; };
+
     protected:
     // vector position of the pointer
     vec2 pPos;
@@ -33,6 +45,7 @@ class GraphicWindow : public QWidget
 
     std::vector<Shape*> selected = {nullptr};
     Shape* active = selected[0];
+    Shape* lastActive;
     SRectangle* boxSel = nullptr;
     std::string prevcol = "";
 
@@ -81,48 +94,6 @@ class GraphicWindow : public QWidget
     void moveShape(QMouseEvent* event);
     };
 
-class Table : public QTableWidget
-    {
-    public:
-    Table(QWidget* parent = nullptr);
-
-    void add(vec2 tablePos, std::string item);
-
-    void minimizeTable();
-
-    void Clear();
-
-    private:
-
-    std::vector<QTableWidgetItem*> tableItems;
-    
-
-    };
-
-int loadnew(GraphicWindow* gwin, DetailContainer* dc, Table* table);
-
-class MainWindow : public QMainWindow
-    {
-    public:
-    MainWindow(QWidget* parent = nullptr, GraphicWindow* graphicWindow = nullptr);
-
-    GraphicWindow* gwin;
-    DetailContainer dc;
-
-    public slots:
-    void pressy();
-    void remAll();
-    void uniqueFactors();
-    void onlyFactors();
-
-
-    private:
-    std::vector<QWidget*> widgets;
-    QVBoxLayout* dockinglayout;
-    Table* table;
-    };
-
-int CpMain();
 
 
 #endif

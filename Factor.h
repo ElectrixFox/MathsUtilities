@@ -4,35 +4,47 @@
 #include "Utility.h"
 #include "Checkprime.h"
 
-struct facPair { int a, b; };
-
-struct Factors
-    {
-    std::vector<int> x;
-
-    void flush() { using namespace std; x.erase(remove(x.begin(), x.end(), 1), x.end()); };
-    int compute() { int res = 1; for (int num : x) { res *= num; } return res; };
-    std::string compress(int exponential = 0);
-    };
+struct facPair { superint a, b; };
 
 struct Number
     {
-    int base;
-    int exponent;
+    superint base;
+    superint exponent;
 
     std::string getStr() { return (std::to_string(base) + "^" + std::to_string(exponent)); };
     };
 
+struct Factors
+    {
+    // holds all of the factors in unsimplified form e.g. 4 = 2 * 2 not 2^2
+    std::vector<superint> x;
 
-int outFactors(Factors f);
-int readPrimes();
+    void flush() { using namespace std; x.erase(remove(x.begin(), x.end(), 1), x.end()); };
+    superint compute() { superint res = 1; for (superint num : x) { res *= num; } return res; };
+    std::string compress(int exponential = 0);
 
-facPair fermat(int n);
+    // returns the unique integers
+    std::vector<superint> uniqueI();
 
-int baseFermat(int n, std::vector<int>& f);
-Factors Factor(int n);
+    // returns the unique factors as a string of numbers separated by the separator
+    std::string unique(std::string separator = ", ");
 
-std::vector<Number> exponentiate(std::vector<int> nums);
-std::vector<int> remDuplicates(std::vector<int> vec);
+    std::vector<Number> getAsNumbers();
+    };
+
+Factors getAsFactors(std::vector<Number> numbers);
+
+superint outFactors(Factors f);
+superint readPrimes();
+
+Factors BruteFactor(superint n);
+
+facPair fermat(superint n);
+
+superint baseFermat(superint n, std::vector<superint>& f);
+Factors Factor(superint n);
+
+std::vector<Number> exponentiate(std::vector<superint> nums);
+std::vector<superint> remDuplicates(std::vector<superint> vec);
 
 #endif

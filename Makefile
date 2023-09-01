@@ -7,8 +7,18 @@ APPNAME = main
 END =`pkg-config Qt5Widgets --libs` -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 # add --cflags (before --libs) if not working
 
+MOCS = $(wildcard *.h)
+OBJMOCS = $(addprefix obj/moc_, $(patsubst %.h, %.cpp, $(MOCS)))
+
 SRCFILES = $(wildcard *.cpp)
 OBJFILES = $(addprefix obj/, $(patsubst %.cpp, %.o, $(SRCFILES)))
+OBJFILES += $(OBJMOCS)
+
+obj/moc_%.cpp: %.h
+	moc $< -o $@
+
+#obj/moc_MainWindow.cpp: MainWindow.h
+#    moc MainWindow.h -o moc_MainWindow.cpp
 
 obj/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) $^ -c -o $@ $(END)
@@ -22,4 +32,4 @@ pch:
 # add the actual output of pkg-config to the final compile
 
 clean:
-	rm obj/*.o
+	rm obj/*

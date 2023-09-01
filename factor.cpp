@@ -1,11 +1,11 @@
 #include "Factor.h"
 
-extern std::vector<int> primes;
+extern std::vector<superint> primes;
 
 std::string Factors::compress(int exponential)
 {
 std::string res = "";
-int len = x.size();
+superint len = x.size();
 
 if(exponential == 1)
     {
@@ -13,7 +13,7 @@ if(exponential == 1)
     std::vector<Number> nums = exponentiate(x);
     len = nums.size();
 
-    for (int i = 0; i < len; i++)
+    for (superint i = 0; i < len; i++)
         {
         std::string numstr = nums[i].getStr();
 
@@ -26,9 +26,9 @@ if(exponential == 1)
     }
 else
     {
-    for (int i = 0; i < len; i++)
+    for (superint i = 0; i < len; i++)
         {
-        // turns the ith element into a string
+        // turns the ith element superinto a string
         std::string body = std::to_string(x[i]);
         
         // same as before
@@ -42,12 +42,81 @@ else
 return res;
 };
 
-int outFactors(Factors f)
+std::vector<superint> Factors::uniqueI()
+{
+// sorted factors
+std::vector<superint> sFacs;
+
+// the unique factors
+std::vector<superint> uniFactors;
+
+// sort the factors
+sFacs = sort(x);
+
+// add the first factor to the list
+uniFactors.push_back(sFacs[0]);
+
+// add all of the unique ones to the unique list
+for(int i = 1; i < sFacs.size(); i++)
+    {
+    if(sFacs[i-1] == sFacs[i])
+        continue;
+    else
+        uniFactors.push_back(sFacs[i]);
+    }
+
+return uniFactors;
+}
+
+std::string Factors::unique(std::string separator)
+{
+// getting all of the unique integer factors
+std::vector<superint> uniFactors = uniqueI();
+
+std::string endProd = "";
+
+// construct the final string
+for (superint i : uniFactors)
+    {
+    // if i is the last number don't add any separator
+    if(uniFactors[uniFactors.size() - 1] == i) separator = "";
+
+    // add the number and the separator to the final string
+    endProd += std::to_string(i) + separator;
+    }
+
+return endProd;
+}
+
+std::vector<Number> Factors::getAsNumbers()
+{
+// getting all of the factors in exponential form
+std::vector<Number> nums = exponentiate(x);
+
+return nums;
+}
+
+Factors getAsFactors(std::vector<Number> numbers)
+{
+Factors f;
+
+// for each number in numbers
+for(Number n : numbers)
+    {
+    // add the base exponent amount of times
+    for (int i = 0; i < n.exponent; i++)
+        f.x.push_back(n.base);   
+    }
+
+return f;
+}
+
+superint outFactors(Factors f)
 {
 std::vector<Number> ns = exponentiate(f.x);
 
 std::cout << '\n';
-for (int i = 0; i < ns.size(); i++)
+for (superint i = 0; i < ns.size(); i++)
     {
     std::cout << ns[i].getStr();
     std::cout << (((i + 1) == ns.size()) ? "" : " * ");
@@ -56,15 +125,15 @@ for (int i = 0; i < ns.size(); i++)
 return 0;
 }
 
-facPair fermat(int n)
+facPair fermat(superint n)
 {
-int a = 0;
-int b = 0;
+superint a = 0;
+superint b = 0;
 
 while((a*a - n) < 0) a+= 1;
 
 // these here to stop bad things happening (overloading)
-int c1 = floor(sqrt(a*a-n));
+superint c1 = floor(sqrt(a*a-n));
 float c2 = sqrt(a*a-n);
 
 while(floor(sqrt(a*a-n)) < sqrt(a*a-n))
@@ -77,7 +146,7 @@ b = sqrt(a*a-n);
 return {(a-b), (a+b)};
 }
 
-int baseFermat(int n, std::vector<int>& f)
+superint baseFermat(superint n, std::vector<superint>& f)
 { 
 
 // getting any factors of two immediately out of there
@@ -88,13 +157,13 @@ while((n % 2) == 0)
     }
 
 // linear search to test if prime
-auto ptest = [](int n)
+auto ptest = [](superint n)
     {
     
     if(n == 1)
         return -1;
 
-    for(int i = 0; i < primes.size()-1; i++)
+    for(superint i = 0; i < primes.size()-1; i++)
         {
         if(primes[i] == n)
             return 1;
@@ -108,13 +177,13 @@ auto ptest = [](int n)
 facPair facs = fermat(n);
 
 // get the vals from the tuple
-int v1 = facs.a;
-int v2 = facs.b;
+superint v1 = facs.a;
+superint v2 = facs.b;
 
 
 // testing if they're prime
-int res1 = ptest(v1);
-int res2 = ptest(v2);
+superint res1 = ptest(v1);
+superint res2 = ptest(v2);
 
 // if it is a prime factor add it to the list if not factorise that (for both factors)
 if(res1 == 1)
@@ -130,23 +199,9 @@ else if (res2 == 0)
 return 1;
 }
 
-Factors Factor(int n)
+Factors Factor(superint n)
 {
 Factors f;
-
-// factor by trial division for small numbers
-auto trialdiv = [](int n, Factors f) {
-    for(int i = 0; i < primes.size(); i++)
-        {
-        while(n % primes[i] == 0)
-            {
-            f.x.push_back(primes[i]);
-            n /= primes[i];
-            }
-        }
-    };
-
-
 baseFermat(n, f.x);
 
 f.x = sort(f.x);
@@ -154,7 +209,7 @@ f.x = sort(f.x);
 return f;
 }
 
-int readPrimes()
+superint readPrimes()
 {
 primes = loadPrimes("primes.txt");
 std::cin.ignore();
@@ -163,12 +218,33 @@ std::cin.clear();
 return 0;
 }
 
-std::vector<Number> exponentiate(std::vector<int> nums)
+Factors BruteFactor(superint n)
+{
+Factors f;
+
+// trial division
+for(superint i = 0; i < primes.size(); i++)
+    {
+    // while n divides by the prime
+    while(n % primes[i] == 0)
+        {
+        // add the prime to the list of factors
+        f.x.push_back(primes[i]);
+
+        // divide n by the prime
+        n /= primes[i];
+        }
+    }
+
+return f;
+}
+
+std::vector<Number> exponentiate(std::vector<superint> nums)
 {
 // exponent count
-int expc = 1;
-int cur = 0;
-int prev = 0;
+superint expc = 1;
+superint cur = 0;
+superint prev = 0;
 
 // sorts the numbers
 nums = sort(nums);
@@ -177,11 +253,11 @@ nums = sort(nums);
 std::vector<Number> fins;
 
 // removes the duplicates
-std::vector<int> tmp = nums;
+std::vector<superint> tmp = nums;
 
 tmp = remDuplicates(tmp);
 
-for (int i = 0; i < tmp.size(); i++)
+for (superint i = 0; i < tmp.size(); i++)
     {
     // counts all ocurrances of tmp[i] in nums because tmp is unique it can be done as so
     expc = std::count(nums.begin(), nums.end(), tmp[i]);
@@ -197,7 +273,7 @@ for (int i = 0; i < tmp.size(); i++)
 return fins;
 }
 
-std::vector<int> remDuplicates(std::vector<int> vec)
+std::vector<superint> remDuplicates(std::vector<superint> vec)
 {
 std::sort(vec.begin(), vec.end());
 vec.erase(std::unique(vec.begin(), vec.end()), vec.end());

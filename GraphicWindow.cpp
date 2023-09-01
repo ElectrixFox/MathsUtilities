@@ -117,8 +117,15 @@ if(event->modifiers() == Qt::ShiftModifier && colShape == -1)
     return;
     }
 
-// if it's a left click and it is on something
-if(pressedShape != 0) Select(colShape);
+// if it's a left click and it is on something and move it to the top of the render queue
+if(pressedShape != 0) 
+    {
+    // selects the clicked shape
+    Select(colShape); 
+    // swaps the first element of the vector with the clicked one
+    std::swap(shapes[colShape], shapes[0]); 
+    }
+
 };
 
 void GraphicWindow::mouseMoveEvent(QMouseEvent* event)
@@ -236,8 +243,8 @@ if(active->shapeType == Shape::ShapeType::NODE)
     std::string lab2 = ((Node*)clicked)->getText();
 
     // convert them to ints
-    int ilab1 = atoi(lab1.c_str());
-    int ilab2 = atoi(lab2.c_str());
+    superint ilab1 = atoi(lab1.c_str());
+    superint ilab2 = atoi(lab2.c_str());
 
     // check see if it is a factor or a number
     int primeTest1 = isPrime(ilab1);
@@ -287,7 +294,6 @@ QMenu menu(this);
 getPointerPos(event);
 
 QAction *nNode = menu.addAction("New Node");
-QAction *action2 = menu.addAction("Action 2");
 
 connect(nNode, &QAction::triggered, this, &GraphicWindow::createNode);
 
@@ -310,9 +316,11 @@ void GraphicWindow::createNode()
 {
 std::cout << "\nCreating node";
 
-Node* n = new Node(pPos, "", 5, "red");
+Node* n = new Node(pPos, "5", getMinimumRadius("5"), "red");
 
 shapes.push_back(n);
+
+emit eventOccurred();
 
 update();
 }
@@ -400,11 +408,12 @@ void GraphicWindow::boxSelect()
 // rect pos
 vec2 rPos = boxSel->coords(); 
 
+// get the current scale
 boxSel->getScale();
 
-pPos.out();
-
+// set the new scale
 boxSel->setScale(pPos-rPos);
+
 update();
 }
 
@@ -413,6 +422,7 @@ void GraphicWindow::Select(Shape* s)
 Deselect();
 
 active = s;
+lastActive = s;
 }
 
 void GraphicWindow::Select(int index)
@@ -466,290 +476,24 @@ factorConnect ^= 1;
 return factorConnect;
 }
 
+int GraphicWindow::getMinimumRadius(std::string nodeText)
+{
+int minrad = 0;
+
+// calculation to calculate the minimum size of the node to fit the number
+int wid = fontMetrics().horizontalAdvance(nodeText.c_str());
+int hig = fontMetrics().height();
+
+// if the width is less than the height set the min radius equal to the height
+if(wid < hig) minrad = hig;
+else minrad = wid;
+
+return minrad;
+}
+
 Shape* GraphicWindow::getShape(int index)
 {
 return shapes[index];
 }
 
-MainWindow::MainWindow(QWidget* parent, GraphicWindow* graphicWindow)
-    : QMainWindow(parent), gwin(graphicWindow)
-{
-// menu bar setup
-QMenuBar* menubar = new QMenuBar(this);
-setMenuBar(menubar);
 
-// add the main menu
-QMenu* fileMen = new QMenu("FILE");
-menubar->addMenu(fileMen);
-
-// setting up the main widget
-QDockWidget* dockWidget = new QDockWidget("Side pannel", this);
-
-// creating its' content widget
-QWidget* dockContent = new QWidget(dockWidget);
-
-// setting the docking widget's content up
-dockWidget->setWidget(dockContent);
-
-// setting up the layout of the widget
-dockinglayout = new QVBoxLayout(dockContent);
-QHBoxLayout* buttonlayout = new QHBoxLayout();
-QVBoxLayout* tablelayout = new QVBoxLayout();
-QHBoxLayout* nodeInfoLayout = new QHBoxLayout();
-
-buttonlayout->setMargin(0);
-tablelayout->setMargin(0);
-tablelayout->setSpacing(1);
-
-// add the widget to the window
-addDockWidget(Qt::RightDockWidgetArea, dockWidget);
-
-// adding the unique factor checkbox
-QCheckBox* uniqueFac = new QCheckBox("Unique Factors", dockContent);
-QCheckBox* onlyFac = new QCheckBox("Only Factors", dockContent);
-
-onlyFac->setChecked(1);
-
-table = new Table(dockContent);
-
-table->resizeColumnsToContents();
-table->resizeRowsToContents();
-
-// button setup
-QPushButton* loadNewButton = new QPushButton("Load new set", dockContent);
-QPushButton* resetButton = new QPushButton("Reset", dockContent);
-
-// the width of the button's text
-int wid = fontMetrics().horizontalAdvance("  Load new set  ");
-
-// setting the width and height of the button
-loadNewButton->setFixedSize(wid, 30);
-resetButton->setFixedSize(fontMetrics().horizontalAdvance("  Reset  "), 30);
-
-
-QLabel* nodeIDLabel = new QLabel("Node ID: ", dockContent);
-
-//tablelayout->setSizeConstraint(QLayout::SizeConstraint::SetMinimumSize);
-//tablelayout->setContentsMargins(10, 10, 10, 10);
-
-// setting the minimum size to be the button's width so that it is always readable
-dockContent->setMinimumWidth(table->width());
-
-// set spacing
-dockinglayout->setSpacing(0);
-dockinglayout->setAlignment(Qt::AlignTop);
-
-// adding them all to here to stop them having to be individually stored in the class
-widgets.push_back(fileMen);
-widgets.push_back(dockWidget);
-widgets.push_back(dockContent);
-widgets.push_back(table);
-widgets.push_back(loadNewButton);
-widgets.push_back(resetButton);
-
-// adding both widgets to the dock
-buttonlayout->addWidget(loadNewButton);
-buttonlayout->addWidget(resetButton);
-tablelayout->addWidget(uniqueFac, 1);
-tablelayout->addWidget(onlyFac, 1);
-tablelayout->addWidget(table, 1, Qt::AlignAbsolute);
-nodeInfoLayout->addWidget(nodeIDLabel);
-
-// add the layout's together
-dockinglayout->addLayout(buttonlayout);
-dockinglayout->addLayout(tablelayout);
-dockinglayout->addLayout(nodeInfoLayout);
-
-
-// setting the dock layout
-dockContent->setLayout(dockinglayout);
-
-// setting the main widget of the dock
-dockWidget->setWidget(dockContent);
-
-// connecting the button to the window so that it can be used
-connect(loadNewButton, &QPushButton::clicked, this, pressy);
-connect(resetButton, &QPushButton::clicked, this, remAll);
-connect(uniqueFac, &QCheckBox::clicked, this, uniqueFactors);
-connect(onlyFac, &QCheckBox::clicked, this, onlyFactors);
-};
-
-Table::Table(QWidget* parent)
-    : QTableWidget(parent)
-{
-// setting the rows and the columns
-this->setRowCount(3);
-this->setColumnCount(3);
-
-resizeRowsToContents();
-resizeColumnsToContents();
-
-this->setSizeAdjustPolicy(SizeAdjustPolicy::AdjustToContents);
-this->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-this->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
-}
-
-void Table::minimizeTable()
-{
-int totalH = 0;
-for (int i = 0; i < rowCount(); i++)
-    {
-    totalH += rowHeight(i);
-    }
-
-int totalW = 0;
-for (int i = 0; i < columnCount(); i++)
-    {
-    totalW += columnWidth(i);
-    }
-
-setFixedHeight(totalH);
-setFixedWidth(totalW);
-}
-
-void Table::add(vec2 tablePos, std::string item)
-{
-QTableWidgetItem* element = new QTableWidgetItem(item.c_str());
-
-// row count
-int rc = rowCount();
-
-// if the row count is less than or equal to the position trying to write to
-if(rc <= tablePos.x) 
-    {
-    // add a new row
-    setRowCount(rc+1);
-    }
-
-// setting the new item
-setItem(tablePos.x, tablePos.y, element);
-
-// resizing
-resizeRowsToContents();
-resizeColumnsToContents();
-
-// updating the table
-update();
-
-// adding the element to the list
-tableItems.push_back(element);
-}
-
-void Table::Clear()
-{
-clearContents();
-}
-
-// LOOK AT THIS IT'S BUGGING SOMETIMES WITH READING BACK FACTORS (LOOK AT 30)
-int loadnew(GraphicWindow* gwin, DetailContainer* dc, Table* table)
-{
-int curRow = dc->getTopV();
-
-Detail detail = dc->getTop();
-
-Node* number = new Node({50, 50}, std::to_string(detail.number), 14, "light green");
-gwin->add(number);
-
-// adding the number to the table
-table->add({(float)curRow, 0}, std::to_string(detail.number));
-
-for (Number n : detail.factors)
-    {
-    // adding the factors to the vector
-    number->addFactor(n);
-    }
-
-// a collection of the factors
-std::stringstream ss[2];
-
-int count = 0;
-for (Number i : detail.factors)
-    {
-    // doing this before so they can go straight to the table
-    std::string strnum = std::to_string(i.base);
-    ss[0] << strnum << ", ";
-    
-    if(dc->hasBeen(i.base) == 1 && dc->getUniqueFactor() == 1) continue;
-
-    Node* n = new Node({(float)(100 + count*50), (float)50}, strnum, 14, "light blue");
-    
-    gwin->add(n);
-
-    count++;
-    }
-
-// the stream as a string
-std::string compactStr = ss[0].str();
-
-// the final string -2 as it gets rid of the extra ", "
-std::string final = compactStr.substr(0, compactStr.length()-2);
-
-table->add({(float)curRow, 1}, final);
-
-for (Number n : detail.factors)
-    {
-    ss[1] << n.getStr() << " * ";
-    }
-
-// the exponential stream as a string
-std::string Nucompact = ss[1].str();
-
-// the final exponential nums string -3 as it gets rid of the extra " * "
-std::string Nufinal = Nucompact.substr(0, Nucompact.length()-3);
-
-table->add({(float)curRow, 2}, Nufinal);
-
-dc->incrementTop();
-
-return 0;
-}
-
-void MainWindow::pressy()
-{
-// loads the new nodes
-loadnew(this->gwin, &dc, this->table);
-update();
-}
-
-void MainWindow::remAll()
-{
-gwin->remAll();
-
-dc.Reset();
-
-table->Clear();
-}
-
-void MainWindow::onlyFactors()
-{
-gwin->toggleConnect();
-}
-
-void MainWindow::uniqueFactors()
-{
-dc.toggleUniqueFactor();
-}
-
-int CpMain()
-{
-int h = 0;
-QApplication app(h, {});
-MainWindow* window = new MainWindow();
-
-app.setActiveWindow(window);
-
-GraphicWindow gwin;
-window->gwin = &gwin;
-
-window->setWindowTitle("Graphy");
-window->setCentralWidget(&gwin);
-
-window->setGeometry(200, 200, 800, 800);
-
-window->show();
-
-
-int result = app.exec();
-
-return result;
-}

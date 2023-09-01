@@ -79,6 +79,11 @@ void Shape::changeColour(std::string col)
 colour = col;
 };
 
+void Shape::changeColourOrigional(std::string col)
+{
+origionalColour = col;
+};
+
 void Shape::revertColour()
 {
 changeColour(origionalColour);
@@ -410,4 +415,9 @@ return "";
 void Node::addFactor(Number n)
 {
 nums.push_back(n);
+}
+
+void Node::addFactors(Factors facts)
+{
+nums = facts.getAsNumbers();
 }

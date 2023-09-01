@@ -4,8 +4,8 @@
 #include "Utility.h"
 
 
-int findPrime(int p, std::vector<int> primenums);
-int findPrime(int p);
+superint findPrime(superint p, std::vector<superint> primenums);
+superint findPrime(superint p);
 
-int isPrime(int p);
+int isPrime(superint p);
 #endif

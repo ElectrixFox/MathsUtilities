@@ -4,8 +4,8 @@ Detail DetailContainer::getTop()
 {
 std::vector<Number> nums;
 
-std::vector<int> facs = factors[top];
-std::vector<int> exps = exponents[top];
+std::vector<superint> facs = factors[top];
+std::vector<superint> exps = exponents[top];
 
 for(int i = 0; i < facs.size(); i++) 
     {
@@ -19,8 +19,8 @@ Detail DetailContainer::getAt(int n)
 {
 std::vector<Number> nums;
 
-std::vector<int> facs = factors[n];
-std::vector<int> exps = exponents[n];
+std::vector<superint> facs = factors[n];
+std::vector<superint> exps = exponents[n];
 
 for(int i = 0; i < facs.size(); i++) 
     {
@@ -29,7 +29,6 @@ for(int i = 0; i < facs.size(); i++)
 
 return {numbers[n], nums};
 }
-
 
 int DetailContainer::hasBeen(int value)
 {
@@ -80,8 +79,8 @@ file.close();
 for(std::string s : lines)
     {
     // arrays
-    std::vector<int> facs;
-    std::vector<int> exps;
+    std::vector<superint> facs;
+    std::vector<superint> exps;
 
     // gets all of the matches of the pattern
     std::smatch match;
@@ -107,6 +106,7 @@ for(std::string s : lines)
 
         for(int i = 0; i < numcount; i++)
             {
+            // finding the position of the next *
             foundPos = (factorString.find("*", 0) != std::string::npos) ? factorString.find("*", 0) : -1;
 
             // substring the string
@@ -131,8 +131,8 @@ for(std::string s : lines)
                 exps.push_back(b);
                 }
 
-            // the new start pos will be the old found pos + 1
-            startPos = foundPos + 1;
+            // the new start pos will be the old found pos + 2
+            startPos = foundPos + 2;
             }
         
         // adds all of them to the respective global variables
@@ -141,7 +141,43 @@ for(std::string s : lines)
         exponents.push_back(exps);
         }
     }
+
+
 }
 
+void DetailContainer::pushTop(Detail detail)
+{
+/* // insert the number at the top of the vector
+numbers.insert(numbers.begin() + top, detail.number);
 
+std::vector<superint> facs;
+std::vector<superint> exps;
 
+// add all of the factors and respective exponents to vectors
+for(Number n : detail.factors)
+    {
+    facs.push_back(n.base);
+    exps.push_back(n.exponent);
+    }
+
+// add the factors and exponents to the factors and exponents
+factors.insert(factors.begin() + top, facs);
+exponents.insert(factors.begin() + top, exps); */
+
+// insert the number at the top of the vector
+numbers.push_back(detail.number);
+
+std::vector<superint> facs;
+std::vector<superint> exps;
+
+// add all of the factors and respective exponents to vectors
+for(Number n : detail.factors)
+    {
+    facs.push_back(n.base);
+    exps.push_back(n.exponent);
+    }
+
+// add the factors and exponents to the factors and exponents
+factors.push_back(facs);
+exponents.push_back(exps);
+}
