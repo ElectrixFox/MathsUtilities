@@ -412,6 +412,11 @@ for(Number n : nums)
 return "";
 }
 
+void Node::deleteEdges(Line* lns)
+{
+
+}
+
 void Node::addFactor(Number n)
 {
 nums.push_back(n);

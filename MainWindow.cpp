@@ -281,8 +281,6 @@ updateNodeColour();
 
 void MainWindow::updEditorUI()
 {
-std::cout << "\nUpdating UI";
-
 if(gwin->getActive() == nullptr) return;
 
 nodeEditor->CallUpdate((Node*)gwin->getActive());

@@ -125,6 +125,9 @@ class Line : public Shape
     vec2 getSource() { return (type == Type::SHAPE) ? source->coords() : Nsource; };
     vec2 getTarget() { return (type == Type::SHAPE) ? target->coords() : Ntarget; };
 
+    Shape* getSSource() { return (type == Type::SHAPE) ? source : nullptr; };
+    Shape* getSTarget() { return (type == Type::SHAPE) ? target : nullptr; };
+
     protected:
     int width = 1;
 
@@ -175,6 +178,9 @@ class Node : public Circle
 
     void addFactor(Number n);
     void addFactors(Factors facts);
+
+    // deletes all edges
+    void deleteEdges(Line* lns);
 
     private:
     Line e;

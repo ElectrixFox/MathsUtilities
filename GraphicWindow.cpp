@@ -350,9 +350,7 @@ if(selected[0] == nullptr) return;
 // number of objects selected
 int nosel = selected.size();
 
-std::cout << "\nSelecting: " << nosel;
-std::cout << "\tLabel: " << selected[0]->getText();
-
+// index
 int i = 0;
 do
     {
@@ -361,6 +359,9 @@ do
 
     // removes the shape
     shapes.erase(todel);
+
+    // deletes the edges (an adjacency matrix would be very useful here)
+    if(shapes[i]->shapeType == Shape::ShapeType::NODE) ((Node*)selected[i])->deleteEdges();
 
     // while i is less than the number selected
     } while(++i < nosel);
