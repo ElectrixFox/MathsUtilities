@@ -8,7 +8,10 @@ END =`pkg-config Qt5Widgets --libs` -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 # add --cflags (before --libs) if not working
 
 MOCS = $(wildcard *.h)
-OBJMOCS = $(addprefix obj/moc_, $(patsubst %.h, %.cpp, $(MOCS)))
+
+# the specific files to moc (reduces compile time a bit)
+SMOCS = GraphicWindow.h MainWindow.h
+OBJMOCS = $(addprefix obj/moc_, $(patsubst %.h, %.cpp, $(SMOCS)))
 
 SRCFILES = $(wildcard *.cpp)
 OBJFILES = $(addprefix obj/, $(patsubst %.cpp, %.o, $(SRCFILES)))

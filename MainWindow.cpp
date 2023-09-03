@@ -411,7 +411,11 @@ update();
 
 void Table::Clear()
 {
+// clears the table
 clearContents();
+
+// resets the row count so that additions start from index 0 again
+setRowCount(0);
 }
 
 
