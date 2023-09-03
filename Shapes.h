@@ -53,6 +53,7 @@ class Shape
 
     int getID() { return id; };
     std::string getColour() { return colour; };
+    std::string getText() { return textContent; };
 
     QRectF bbox;
 

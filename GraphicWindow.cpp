@@ -286,16 +286,31 @@ update();
 
 void GraphicWindow::contextMenuEvent(QContextMenuEvent* event)
 {
-if(Colliding(pPos) != -1) return;
-if(lineDeleted == 1) return;
-
 QMenu menu(this);
 
 getPointerPos(event);
 
-QAction *nNode = menu.addAction("New Node");
+// index of the colliding shape
+int colindx = Colliding(pPos);
 
-connect(nNode, &QAction::triggered, this, &GraphicWindow::createNode);
+// if there is something colliding
+if(colindx != -1)
+    {
+    // when there are no items selected select what has been clicked
+    if(selected.size() == 0) Select(colindx);
+
+    QAction *dNode = menu.addAction("Delete Node");
+
+    connect(dNode, &QAction::triggered, this, &GraphicWindow::deleteNode);
+    }
+else
+    {
+    if(lineDeleted == 1) return;
+
+    QAction *nNode = menu.addAction("New Node");
+
+    connect(nNode, &QAction::triggered, this, &GraphicWindow::createNode);
+    }
 
 menu.exec(mapToGlobal({(int)pPos.x, (int)pPos.y}));
 
@@ -324,6 +339,33 @@ Select(n);
 
 emit eventOccurred();
 
+update();
+}
+
+void GraphicWindow::deleteNode()
+{
+// if the first item of selected is null then the rest will be
+if(selected[0] == nullptr) return;
+
+// number of objects selected
+int nosel = selected.size();
+
+std::cout << "\nSelecting: " << nosel;
+std::cout << "\tLabel: " << selected[0]->getText();
+
+int i = 0;
+do
+    {
+    // finds the shape to delete
+    auto todel = std::find(shapes.begin(), shapes.end(), selected[i]);
+
+    // removes the shape
+    shapes.erase(todel);
+
+    // while i is less than the number selected
+    } while(++i < nosel);
+
+// update the UI
 update();
 }
 
@@ -423,10 +465,14 @@ void GraphicWindow::Select(Shape* s)
 {
 Deselect();
 
+// set the new active
 active = s;
+selected.push_back(s);
+
+// set the old active (last active by direct select) as the new shape
 lastActive = s;
 
-
+// emit that the selection has occurred so that it can be recieved and the editor UI can be updated
 emit eventOccurred();
 }
 

@@ -34,6 +34,11 @@ class GraphicWindow : public QWidget
     // returns the minimum radius of a node to contain all of the text 
     int getMinimumRadius(std::string nodeText);
 
+    // To-Do: add a function here to save the node layout into an adjacency matrix
+
+    // To-Do: add a function here to load the node layout from an adjacency matrix
+
+
     Shape* getActive() { return active; };
     Shape* getLastActive() { return lastActive; };
 
@@ -68,6 +73,9 @@ class GraphicWindow : public QWidget
 
     // function to create a node at the pointer
     void createNode();
+
+    // function to remove all selected nodes
+    void deleteNode();
 
     // function to handle the majority of the main box select functionalities
     void boxSelect();

@@ -5,7 +5,6 @@ MainWindow::MainWindow(QWidget* parent, GraphicWindow* graphicWindow)
 {
 connect(gwin, SIGNAL(eventOccurred()), this, SLOT(updEditorUI()));
 
-#pragma region MenuBar
 // menu bar setup
 QMenuBar* menubar = new QMenuBar(this);
 setMenuBar(menubar);
@@ -29,8 +28,6 @@ optionsMenu->addAction(onlyFacs);
 // connect up all of the actions
 connect(uniFac, &QAction::triggered, this, uniqueFactors);
 connect(onlyFacs, &QAction::triggered, this, onlyFactors);
-
-#pragma endregion
 
 // setting up the main widget
 QDockWidget* dockWidget = new QDockWidget("Side pannel", this);
