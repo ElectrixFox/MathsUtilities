@@ -182,7 +182,10 @@ class Node : public Circle
     // deletes all edges
     void deleteEdges(Line* lns);
 
+    int getNodeID() { return nodeID; };
+
     private:
+    int nodeID = 0;
     Line e;
     std::vector<Number> nums;
     };

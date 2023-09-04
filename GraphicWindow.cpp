@@ -2,6 +2,16 @@
 
 void GraphicWindow::add(Shape* shape)
 {
+// if it is a node add it to the adjacency matrix
+if(shape->shapeType == Shape::ShapeType::LINE)
+    {
+    // getting the line
+    Line* ln = (Line*)shape;
+
+    adjacencyMatr[((Node*)ln->getSSource())->getNodeID()][((Node*)ln->getSTarget())->getNodeID()] = 1;
+    }
+
+
 shapes.push_back(shape);
 }
 
@@ -333,7 +343,8 @@ std::cout << "\nCreating node";
 
 Node* n = new Node(pPos, "5", getMinimumRadius("5"), "red");
 
-shapes.push_back(n);
+// add n to the vector of shapes
+add(n);
 
 Select(n);
 
@@ -361,7 +372,7 @@ do
     shapes.erase(todel);
 
     // deletes the edges (an adjacency matrix would be very useful here)
-    if(shapes[i]->shapeType == Shape::ShapeType::NODE) ((Node*)selected[i])->deleteEdges();
+    //if(shapes[i]->shapeType == Shape::ShapeType::NODE) ((Node*)selected[i])->deleteEdges();
 
     // while i is less than the number selected
     } while(++i < nosel);

@@ -17,7 +17,7 @@ class GraphicWindow : public QWidget
         void eventOccurred();
 
     public: 
-    GraphicWindow(QWidget* parent = nullptr) : QWidget(parent) { setMouseTracking(true); };
+    GraphicWindow(QWidget* parent = nullptr) : QWidget(parent) { setMouseTracking(true); adjacencyMatr = new int*; };
 
     // add a shape to the window's collection
     void add(Shape* shape);
@@ -47,6 +47,8 @@ class GraphicWindow : public QWidget
     vec2 pPos;
 
     std::vector<Shape*> shapes;
+
+    int** adjacencyMatr;
 
     std::vector<Shape*> selected = {nullptr};
     Shape* active = selected[0];

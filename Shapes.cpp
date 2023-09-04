@@ -379,6 +379,9 @@ Node::Node(vec2 pos, std::string label, int radius, std::string col)
 {
 shapeType = ShapeType::NODE;
 
+static int i = 0;
+nodeID = i;
+i++;
 };
 
 void Node::draw(QPainter* qp)
